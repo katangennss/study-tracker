@@ -22,7 +22,10 @@ export default function Materials() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [fileUrls, setFileUrls] = useState<Record<string, string>>({});
 
-  const canPost = activeGroup?.role === "admin" || activeGroup?.allowPeerMaterials === true;
+  const canPost =
+    activeGroup?.role === "admin" ||
+    activeGroup?.type === "school_class" ||
+    activeGroup?.allowPeerMaterials === true;
 
   function load() {
     if (!activeGroup) return;

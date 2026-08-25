@@ -4,7 +4,7 @@ import SubpageHeader from "../components/SubpageHeader";
 import { supabase } from "../lib/supabase";
 import { useActiveGroup } from "../lib/activeGroup";
 
-type GroupInfo = { name: string; org_name: string; allow_peer_materials: boolean };
+type GroupInfo = { name: string; org_name: string; allow_peer_materials: boolean; type: "school_class" | "course" };
 
 export default function AdminSettings() {
   const { groupId } = useParams<{ groupId: string }>();
@@ -14,6 +14,7 @@ export default function AdminSettings() {
   const [name, setName] = useState("");
   const [orgName, setOrgName] = useState("");
   const [allowPeer, setAllowPeer] = useState(false);
+  const [groupType, setGroupType] = useState<"school_class" | "course" | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -23,11 +24,12 @@ export default function AdminSettings() {
     if (!groupId) return;
     supabase
       .from("groups")
-      .select("name, org_name, allow_peer_materials")
+      .select("name, org_name, allow_peer_materials, type")
       .eq("id", groupId)
       .single()
       .then(({ data }) => {
         const g = data as GroupInfo;
+        setGroupType(g?.type ?? null);
         setName(g?.name ?? "");
         setOrgName(g?.org_name ?? "");
         setAllowPeer(g?.allow_peer_materials ?? false);
@@ -72,19 +74,26 @@ export default function AdminSettings() {
           <input id="org" className="field-input" value={orgName} onChange={(e) => setOrgName(e.target.value)} />
         </div>
 
-        <div className="switch-row" style={{ border: "1px solid var(--line)", borderRadius: "var(--radius)", marginBottom: 14 }}>
-          <div>
-            <div className="switch-row-label">Allow peer-shared materials</div>
-            <div className="switch-row-sub">Let any member post to Materials, not just admins</div>
+        {groupType === "school_class" ? (
+          <div className="field-hint" style={{ marginBottom: 14 }}>
+            School classes have no teacher role — every member can already edit the schedule and post
+            homework and materials.
           </div>
-          <button
-            type="button"
-            className={"switch" + (allowPeer ? " on" : "")}
-            role="switch"
-            aria-checked={allowPeer}
-            onClick={() => setAllowPeer((v) => !v)}
-          />
-        </div>
+        ) : (
+          <div className="switch-row" style={{ border: "1px solid var(--line)", borderRadius: "var(--radius)", marginBottom: 14 }}>
+            <div>
+              <div className="switch-row-label">Allow peer-shared materials</div>
+              <div className="switch-row-sub">Let any member post to Materials, not just admins</div>
+            </div>
+            <button
+              type="button"
+              className={"switch" + (allowPeer ? " on" : "")}
+              role="switch"
+              aria-checked={allowPeer}
+              onClick={() => setAllowPeer((v) => !v)}
+            />
+          </div>
+        )}
 
         <button className="primary-btn" disabled={saving}>
           {saving ? "Saving…" : "Save Changes"}
