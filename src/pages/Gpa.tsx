@@ -7,6 +7,7 @@ import { useLanguage } from "../lib/i18n";
 
 type Subject = { id: string; name: string; color: string };
 type Grade = { id: string; subject_id: string | null; label: string | null; value: number; graded_at: string };
+type SubjectGrade = { id: string; value: number };
 
 // School's official 10-point -> 4.0 quality-point conversion table.
 const QUALITY_POINTS: Record<number, number> = {
@@ -20,7 +21,7 @@ const gpa4Average = (grades: number[]) => average(grades.map(toQualityPoints));
 function SchoolGrades({ groupId, userId }: { groupId: string; userId: string }) {
   const { t } = useLanguage();
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [gradesBySubject, setGradesBySubject] = useState<Record<string, number[]>>({});
+  const [gradesBySubject, setGradesBySubject] = useState<Record<string, SubjectGrade[]>>({});
   const [openId, setOpenId] = useState<string | null>(null);
   const [gpaMode, setGpaMode] = useState(false);
 
@@ -28,14 +29,14 @@ function SchoolGrades({ groupId, userId }: { groupId: string; userId: string }) 
     supabase.from("subjects").select("id, name, color").eq("group_id", groupId).then(({ data }) => setSubjects((data as Subject[]) ?? []));
     supabase
       .from("grades")
-      .select("subject_id, value")
+      .select("id, subject_id, value")
       .eq("group_id", groupId)
       .eq("student_id", userId)
       .then(({ data }) => {
-        const map: Record<string, number[]> = {};
-        ((data as { subject_id: string | null; value: number }[]) ?? []).forEach((g) => {
+        const map: Record<string, SubjectGrade[]> = {};
+        ((data as { id: string; subject_id: string | null; value: number }[]) ?? []).forEach((g) => {
           if (!g.subject_id) return;
-          map[g.subject_id] = [...(map[g.subject_id] ?? []), g.value];
+          map[g.subject_id] = [...(map[g.subject_id] ?? []), { id: g.id, value: g.value }];
         });
         setGradesBySubject(map);
       });
@@ -48,9 +49,15 @@ function SchoolGrades({ groupId, userId }: { groupId: string; userId: string }) 
     load();
   }
 
+  async function deleteGrade(gradeId: string) {
+    await supabase.from("grades").delete().eq("id", gradeId);
+    load();
+  }
+
+  const valuesOf = (grades: SubjectGrade[]) => grades.map((g) => g.value);
   const subjectsWithGrades = subjects.filter((s) => (gradesBySubject[s.id] ?? []).length > 0);
-  const overall10 = average(subjectsWithGrades.map((s) => average(gradesBySubject[s.id])));
-  const overallGpa4 = average(subjectsWithGrades.map((s) => gpa4Average(gradesBySubject[s.id])));
+  const overall10 = average(subjectsWithGrades.map((s) => average(valuesOf(gradesBySubject[s.id]))));
+  const overallGpa4 = average(subjectsWithGrades.map((s) => gpa4Average(valuesOf(gradesBySubject[s.id]))));
 
   if (subjects.length === 0) {
     return <div className="empty-state">{t("gpa.noSubjects")}</div>;
@@ -69,8 +76,9 @@ function SchoolGrades({ groupId, userId }: { groupId: string; userId: string }) 
       <div className="subjects">
         {subjects.map((s) => {
           const grades = gradesBySubject[s.id] ?? [];
+          const values = valuesOf(grades);
           const isOpen = openId === s.id;
-          const displayAvg = grades.length ? (gpaMode ? gpa4Average(grades) : average(grades)) : null;
+          const displayAvg = values.length ? (gpaMode ? gpa4Average(values) : average(values)) : null;
           return (
             <div className={"subject" + (isOpen ? " open" : "")} key={s.id}>
               <div className="subject-row" onClick={() => setOpenId(isOpen ? null : s.id)}>
@@ -81,9 +89,19 @@ function SchoolGrades({ groupId, userId }: { groupId: string; userId: string }) 
               </div>
               <div className="subject-detail">
                 <div className="grade-history">
-                  {grades.map((g, i) => (
-                    <span className="grade-pill" key={i}>
-                      {gpaMode ? toQualityPoints(g).toFixed(1) : g}
+                  {grades.map((g) => (
+                    <span className="grade-pill" key={g.id} style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      {gpaMode ? toQualityPoints(g.value).toFixed(1) : g.value}
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteGrade(g.id);
+                        }}
+                        style={{ cursor: "pointer", opacity: 0.7 }}
+                        aria-label={t("common.remove")}
+                      >
+                        ×
+                      </span>
                     </span>
                   ))}
                 </div>
@@ -139,6 +157,11 @@ function CourseGrades({ groupId, userId }: { groupId: string; userId: string }) 
     load();
   }
 
+  async function deleteGrade(id: string) {
+    await supabase.from("grades").delete().eq("id", id);
+    load();
+  }
+
   const overall = average(grades.map((g) => g.value));
 
   return (
@@ -185,7 +208,12 @@ function CourseGrades({ groupId, userId }: { groupId: string; userId: string }) 
                 <div className="resource-title">{g.label}</div>
                 <div className="resource-sub">{g.graded_at}</div>
               </div>
-              <div className="subject-avg mono-data">{g.value}</div>
+              <div className="subject-avg mono-data" style={{ marginRight: 10 }}>
+                {g.value}
+              </div>
+              <button type="button" className="link-btn" style={{ color: "#c0392b" }} onClick={() => deleteGrade(g.id)}>
+                {t("common.remove")}
+              </button>
             </div>
           ))}
         </div>

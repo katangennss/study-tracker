@@ -62,6 +62,7 @@ export const en = {
   "schedule.packageSize": "PACKAGE SIZE",
   "schedule.packageHint": "How many classes you paid for. Once you hit this many attended, the count resets to 0 and you'll get a reminder it's time to pay again.",
   "schedule.history": "HISTORY",
+  "schedule.confirmDeleteSubject": "\"{{subject}}\" has no other periods left. Delete it from the subject list too? This will also delete any grades recorded for it.",
 
   // homework
   "homework.title": "Homework",

@@ -107,7 +107,7 @@ function SchoolSchedule({ groupId, isAdmin }: { groupId: string; isAdmin: boolea
     setSaving(false);
   }
 
-  async function handleDelete(periodId: string, subjectId: string | null) {
+  async function handleDelete(periodId: string, subjectId: string | null, subjectName: string) {
     await supabase.from("schedule_periods").delete().eq("id", periodId);
 
     if (subjectId) {
@@ -115,12 +115,11 @@ function SchoolSchedule({ groupId, isAdmin }: { groupId: string; isAdmin: boolea
         .from("schedule_periods")
         .select("id", { count: "exact", head: true })
         .eq("subject_id", subjectId);
-      const { count: gradeCount } = await supabase
-        .from("grades")
-        .select("id", { count: "exact", head: true })
-        .eq("subject_id", subjectId);
-      if ((remainingPeriods ?? 0) === 0 && (gradeCount ?? 0) === 0) {
-        await supabase.from("subjects").delete().eq("id", subjectId);
+      if ((remainingPeriods ?? 0) === 0) {
+        const confirmed = window.confirm(t("schedule.confirmDeleteSubject", { subject: subjectName }));
+        if (confirmed) {
+          await supabase.from("subjects").delete().eq("id", subjectId);
+        }
       }
     }
 
@@ -160,7 +159,11 @@ function SchoolSchedule({ groupId, isAdmin }: { groupId: string; isAdmin: boolea
                     {p.room && <div className="period-room">{p.room}</div>}
                   </div>
                   {isAdmin && (
-                    <button type="button" className="link-btn" onClick={() => handleDelete(p.id, p.subject_id)}>
+                    <button
+                      type="button"
+                      className="link-btn"
+                      onClick={() => handleDelete(p.id, p.subject_id, p.subjects?.name ?? t("common.untitled"))}
+                    >
                       {t("common.remove")}
                     </button>
                   )}
