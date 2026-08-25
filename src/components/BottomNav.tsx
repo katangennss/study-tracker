@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { PencilIcon, CalendarIcon, HomeIcon, FolderIcon, ChartIcon } from "./icons";
+import { PencilIcon, CalendarIcon, HomeIcon, FolderIcon, ChartIcon, TimerIcon } from "./icons";
 import { useActiveGroup } from "../lib/activeGroup";
 
 export default function BottomNav() {
@@ -12,6 +12,7 @@ export default function BottomNav() {
     { to: "/", label: "Home", Icon: HomeIcon, end: true },
     { to: "/materials", label: "Materials", Icon: FolderIcon },
     { to: "/gpa", label: "Grades", Icon: ChartIcon },
+    { to: "/timer", label: "Focus", Icon: TimerIcon },
   ];
 
   return (

@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import Schedule from "./pages/Schedule";
 import Homework from "./pages/Homework";
 import Gpa from "./pages/Gpa";
+import Timer from "./pages/Timer";
 import Materials from "./pages/Materials";
 import Profile from "./pages/Profile";
 import ProfileEdit from "./pages/ProfileEdit";
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="/schedule" element={<Schedule />} />
         <Route path="/homework" element={<Homework />} />
         <Route path="/gpa" element={<Gpa />} />
+        <Route path="/timer" element={<Timer />} />
         <Route path="/materials" element={<Materials />} />
         <Route path="/materials/add" element={<AddMaterial />} />
         <Route path="/homework/add" element={<AddTask />} />

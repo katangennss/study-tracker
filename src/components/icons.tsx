@@ -122,6 +122,51 @@ export function ChevronLeftIcon({ className }: IconProps) {
   );
 }
 
+export function TimerIcon({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <circle cx="12" cy="13" r="8" />
+      <path d="M12 9v4l3 2" />
+      <path d="M9 2h6" />
+    </svg>
+  );
+}
+
+export function PlayIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M8 5v14l11-7z" />
+    </svg>
+  );
+}
+
+export function PauseIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <rect x="6" y="5" width="4" height="14" rx="1" />
+      <rect x="14" y="5" width="4" height="14" rx="1" />
+    </svg>
+  );
+}
+
+export function ResetIcon({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="M3 12a9 9 0 1 0 3-6.7" />
+      <path d="M3 4v5h5" />
+    </svg>
+  );
+}
+
+export function SkipIcon({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="M5 4l10 8-10 8z" />
+      <path d="M19 5v14" />
+    </svg>
+  );
+}
+
 export function CheckIcon({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">

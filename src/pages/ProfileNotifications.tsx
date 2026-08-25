@@ -5,7 +5,6 @@ import { supabase } from "../lib/supabase";
 
 const initialPrefs = [
   { id: "homework", label: "Homework reminders", sub: "The evening before something is due", on: true },
-  { id: "grades", label: "Grade updates", sub: "When a new grade is added", on: true },
   { id: "schedule", label: "Schedule changes", sub: "Room or time changes for your class", on: true },
   { id: "materials", label: "New materials", sub: "When something is shared with your class", on: false },
 ];

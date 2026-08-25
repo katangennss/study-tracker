@@ -814,6 +814,96 @@ a.avatar-link {
   margin-top: 2px;
 }
 
+/* --- focus timer --- */
+.timer-mode-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.timer-mode-label {
+  font-family: "Noto Serif", serif;
+  font-size: 18px;
+  font-weight: 600;
+}
+.timer-gear {
+  width: 14px;
+  height: 14px;
+}
+.timer-ring-wrap {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.timer-ring-wrap svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.timer-time {
+  font-size: 40px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.timer-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.timer-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line);
+}
+.timer-dot.filled {
+  background: var(--teal);
+  border-color: var(--teal);
+}
+.timer-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+.timer-ctrl-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.timer-ctrl-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.timer-play-btn {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+.timer-play-btn svg {
+  width: 28px;
+  height: 28px;
+}
+
 /* --- bottom nav --- */
 .bottomnav {
   display: flex;
