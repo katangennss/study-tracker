@@ -1,0 +1,15 @@
+{
+  "name": "Study Tracker",
+  "short_name": "Study",
+  "description": "Schedule, homework, grades, and shared materials in one place.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f2f4f6",
+  "theme_color": "#1d7a6e",
+  "lang": "en",
+  "icons": [
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
