@@ -38,7 +38,7 @@ export default function Home() {
   const [homework, setHomework] = useState<HomeworkRow[]>([]);
   const [doneIds, setDoneIds] = useState<Set<string>>(new Set());
   const [materials, setMaterials] = useState<MaterialRow[]>([]);
-  const [attendance, setAttendance] = useState<{ attended: number; missed: number }>({ attended: 0, missed: 0 });
+  const [attendance, setAttendance] = useState<{ attended: number }>({ attended: 0 });
   const [fullName, setFullName] = useState("");
 
   useEffect(() => {
@@ -67,15 +67,12 @@ export default function Home() {
     } else {
       supabase
         .from("attendance_logs")
-        .select("status")
+        .select("created_at")
         .eq("group_id", activeGroup.group_id)
         .eq("student_id", user.id)
+        .gte("created_at", activeGroup.sessionsResetAt)
         .then(({ data }) => {
-          const rows = data ?? [];
-          setAttendance({
-            attended: rows.filter((r) => r.status === "attended").length,
-            missed: rows.filter((r) => r.status === "missed").length,
-          });
+          setAttendance({ attended: (data ?? []).length });
         });
     }
 
@@ -165,15 +162,11 @@ export default function Home() {
           <h2>Sessions</h2>
           <div className="stat-row">
             <div className="stat">
-              <div className="stat-label">Used</div>
+              <div className="stat-label">Attended this package</div>
               <div className="stat-value mono-data">
-                {attendance.attended + attendance.missed}
+                {attendance.attended}
                 {activeGroup.total_sessions ? ` / ${activeGroup.total_sessions}` : ""}
               </div>
-            </div>
-            <div className="stat">
-              <div className="stat-label">Missed</div>
-              <div className="stat-value mono-data">{attendance.missed}</div>
             </div>
           </div>
         </div>

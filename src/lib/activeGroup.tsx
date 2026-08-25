@@ -8,6 +8,7 @@ export type MyGroup = {
   role: "student" | "admin";
   status: "pending" | "approved" | "rejected";
   total_sessions: number | null;
+  sessionsResetAt: string;
   name: string;
   org_name: string;
   type: "school_class" | "course";
@@ -41,6 +42,7 @@ type EnrollmentRow = {
   role: "student" | "admin";
   status: "pending" | "approved" | "rejected";
   total_sessions: number | null;
+  sessions_reset_at: string;
   groups: { name: string; org_name: string; type: "school_class" | "course"; allow_peer_materials: boolean } | null;
 };
 
@@ -66,7 +68,7 @@ export function ActiveGroupProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     supabase
       .from("enrollments")
-      .select("group_id, role, status, total_sessions, groups(name, org_name, type, allow_peer_materials)")
+      .select("group_id, role, status, total_sessions, sessions_reset_at, groups(name, org_name, type, allow_peer_materials)")
       .eq("student_id", userId)
       .then(({ data }) => {
         if (thisRequest !== requestId.current) return; // a newer request already started
@@ -75,6 +77,7 @@ export function ActiveGroupProvider({ children }: { children: ReactNode }) {
           role: r.role,
           status: r.status,
           total_sessions: r.total_sessions,
+          sessionsResetAt: r.sessions_reset_at,
           name: r.groups?.name ?? "Unknown class",
           org_name: r.groups?.org_name ?? "",
           type: r.groups?.type ?? "course",

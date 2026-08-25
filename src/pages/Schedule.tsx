@@ -14,7 +14,8 @@ type Period = {
   subjects: { name: string; color: string } | null;
 };
 
-type AttendanceRow = { id: string; session_date: string; status: "attended" | "missed" };
+type AttendanceRow = { id: string; session_date: string; created_at: string };
+type Reminder = { id: string };
 
 function weekDates(): { date: Date; isoDow: number }[] {
   const now = new Date();
@@ -192,10 +193,19 @@ function SchoolSchedule({ groupId }: { groupId: string }) {
   );
 }
 
-function CourseSessions({ groupId, totalSessions }: { groupId: string; totalSessions: number | null }) {
+function CourseSessions({
+  groupId,
+  totalSessions,
+  sessionsResetAt,
+}: {
+  groupId: string;
+  totalSessions: number | null;
+  sessionsResetAt: string;
+}) {
   const { user } = useAuth();
   const { refresh } = useActiveGroup();
   const [logs, setLogs] = useState<AttendanceRow[]>([]);
+  const [reminder, setReminder] = useState<Reminder | null>(null);
   const [packageInput, setPackageInput] = useState(totalSessions?.toString() ?? "");
   const [savingPackage, setSavingPackage] = useState(false);
 
@@ -203,21 +213,66 @@ function CourseSessions({ groupId, totalSessions }: { groupId: string; totalSess
     if (!user) return;
     supabase
       .from("attendance_logs")
-      .select("id, session_date, status")
+      .select("id, session_date, created_at")
       .eq("group_id", groupId)
       .eq("student_id", user.id)
       .order("session_date", { ascending: false })
       .then(({ data }) => setLogs((data as AttendanceRow[]) ?? []));
   }
 
-  useEffect(loadLogs, [groupId, user]);
+  async function loadReminder() {
+    if (!user) return;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("payment_reminders_enabled")
+      .eq("id", user.id)
+      .single();
+    if (profile?.payment_reminders_enabled === false) {
+      setReminder(null);
+      return;
+    }
+    const { data } = await supabase
+      .from("payment_reminders")
+      .select("id")
+      .eq("group_id", groupId)
+      .eq("student_id", user.id)
+      .eq("acknowledged", false)
+      .limit(1)
+      .maybeSingle();
+    setReminder(data as Reminder | null);
+  }
 
-  async function logSession(status: "attended" | "missed") {
+  useEffect(loadLogs, [groupId, user]);
+  useEffect(() => {
+    loadReminder();
+  }, [groupId, user]);
+
+  const usedThisCycle = logs.filter((l) => l.created_at >= sessionsResetAt).length;
+
+  async function logAttended() {
     if (!user) return;
     await supabase
       .from("attendance_logs")
-      .insert({ group_id: groupId, student_id: user.id, status, session_date: todayISODate() });
+      .insert({ group_id: groupId, student_id: user.id, status: "attended", session_date: todayISODate() });
+
+    if (totalSessions && usedThisCycle + 1 >= totalSessions) {
+      await supabase.from("enrollments").update({ sessions_reset_at: new Date().toISOString() }).eq("group_id", groupId).eq("student_id", user.id);
+      await supabase.from("payment_reminders").insert({ group_id: groupId, student_id: user.id });
+      refresh();
+      loadReminder();
+    }
     loadLogs();
+  }
+
+  async function deleteLog(id: string) {
+    await supabase.from("attendance_logs").delete().eq("id", id);
+    loadLogs();
+  }
+
+  async function dismissReminder() {
+    if (!reminder) return;
+    await supabase.from("payment_reminders").update({ acknowledged: true }).eq("id", reminder.id);
+    setReminder(null);
   }
 
   async function savePackage(e: React.FormEvent) {
@@ -230,34 +285,32 @@ function CourseSessions({ groupId, totalSessions }: { groupId: string; totalSess
     refresh();
   }
 
-  const used = logs.length;
-  const missed = logs.filter((l) => l.status === "missed").length;
-
   return (
     <>
+      {reminder && (
+        <div className="panel" style={{ background: "var(--amber-soft)", borderColor: "var(--amber)" }}>
+          <div className="resource-title">Time to pay for this class</div>
+          <div className="resource-sub" style={{ marginBottom: 10 }}>
+            You've used your full {totalSessions}-class package.
+          </div>
+          <button type="button" className="link-btn" onClick={dismissReminder}>
+            Got it
+          </button>
+        </div>
+      )}
+
       <div className="panel" style={{ textAlign: "center" }}>
         <div className="hero-value mono-data" style={{ fontSize: 32 }}>
-          {used}
+          {usedThisCycle}
           {totalSessions ? ` / ${totalSessions}` : ""}
         </div>
-        <div className="hero-scale">
-          classes used{missed > 0 ? ` · ${missed} missed` : ""}
-        </div>
+        <div className="hero-scale">classes attended this package</div>
       </div>
 
       <div className="panel">
         <div className="panel-label">LOG TODAY'S CLASS</div>
-        <div style={{ display: "flex", gap: 10 }}>
-          <div className="primary-btn" style={{ flex: 1, background: "var(--teal)" }} onClick={() => logSession("attended")}>
-            Attended
-          </div>
-          <div
-            className="primary-btn"
-            style={{ flex: 1, background: "var(--card)", color: "var(--ink)", border: "1px solid var(--line)" }}
-            onClick={() => logSession("missed")}
-          >
-            Missed
-          </div>
+        <div className="primary-btn" onClick={logAttended}>
+          Attended
         </div>
       </div>
 
@@ -276,7 +329,10 @@ function CourseSessions({ groupId, totalSessions }: { groupId: string; totalSess
             Save
           </button>
         </form>
-        <div className="field-hint">How many classes you paid for — this is just for your own tracking.</div>
+        <div className="field-hint">
+          How many classes you paid for. Once you hit this many attended, the count resets to 0 and
+          you'll get a reminder it's time to pay again.
+        </div>
       </div>
 
       {logs.length > 0 && (
@@ -284,11 +340,18 @@ function CourseSessions({ groupId, totalSessions }: { groupId: string; totalSess
           <div className="panel-label">HISTORY</div>
           {logs.map((l) => (
             <div className="resource-row" key={l.id}>
-              <span className="dot" style={{ background: l.status === "attended" ? "#1D7A6E" : "#E0574B" }} />
+              <span className="dot" style={{ background: "#1D7A6E" }} />
               <div style={{ flex: 1 }}>
                 <div className="resource-title">{l.session_date}</div>
-                <div className="resource-sub">{l.status === "attended" ? "Attended" : "Missed"}</div>
+                <div className="resource-sub">Attended</div>
               </div>
+              <button type="button" className="link-btn" style={{ color: "#c0392b" }} onClick={() => deleteLog(l.id)}>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18" />
+                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                </svg>
+              </button>
             </div>
           ))}
         </div>
@@ -310,7 +373,11 @@ export default function Schedule() {
       ) : activeGroup?.type === "school_class" ? (
         <SchoolSchedule groupId={activeGroup.group_id} />
       ) : activeGroup ? (
-        <CourseSessions groupId={activeGroup.group_id} totalSessions={activeGroup.total_sessions} />
+        <CourseSessions
+          groupId={activeGroup.group_id}
+          totalSessions={activeGroup.total_sessions}
+          sessionsResetAt={activeGroup.sessionsResetAt}
+        />
       ) : null}
     </div>
   );
