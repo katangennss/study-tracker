@@ -27,7 +27,7 @@ type MaterialRow = { id: string; title: string; created_at: string };
 
 export default function Home() {
   const { user } = useAuth();
-  const { activeGroup, approvedGroups, loading: groupsLoading } = useActiveGroup();
+  const { activeGroup, approvedGroups, loading: groupsLoading, totalPendingRequests } = useActiveGroup();
   const { t } = useLanguage();
 
   function greeting() {
@@ -118,7 +118,10 @@ export default function Home() {
           </div>
         </div>
         <Link to="/profile" className="avatar-link" aria-label="Profile">
-          <div className="avatar">{fullName ? fullName[0].toUpperCase() : "?"}</div>
+          <div className="avatar-wrap">
+            <div className="avatar">{fullName ? fullName[0].toUpperCase() : "?"}</div>
+            {totalPendingRequests > 0 && <span className="notif-dot" />}
+          </div>
         </Link>
       </div>
 

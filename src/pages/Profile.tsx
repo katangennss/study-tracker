@@ -14,10 +14,9 @@ function initials(name: string) {
 export default function Profile() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { groups, loading } = useActiveGroup();
+  const { groups, loading, pendingByGroup } = useActiveGroup();
   const { t } = useLanguage();
   const [fullName, setFullName] = useState("");
-  const [pendingByGroup, setPendingByGroup] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (!user) return;
@@ -28,26 +27,6 @@ export default function Profile() {
       .single()
       .then(({ data }) => setFullName(data?.full_name ?? ""));
   }, [user]);
-
-  useEffect(() => {
-    const adminGroupIds = groups.filter((g) => g.role === "admin" && g.status === "approved").map((g) => g.group_id);
-    if (adminGroupIds.length === 0) {
-      setPendingByGroup({});
-      return;
-    }
-    supabase
-      .from("enrollments")
-      .select("group_id")
-      .in("group_id", adminGroupIds)
-      .eq("status", "pending")
-      .then(({ data }) => {
-        const counts: Record<string, number> = {};
-        (data ?? []).forEach((row) => {
-          counts[row.group_id] = (counts[row.group_id] ?? 0) + 1;
-        });
-        setPendingByGroup(counts);
-      });
-  }, [groups]);
 
   async function handleSignOut() {
     await supabase.auth.signOut();

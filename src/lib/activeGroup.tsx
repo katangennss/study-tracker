@@ -23,6 +23,8 @@ type ActiveGroupContextValue = {
   setActiveGroupId: (id: string) => void;
   loading: boolean;
   refresh: () => void;
+  pendingByGroup: Record<string, number>;
+  totalPendingRequests: number;
 };
 
 const ActiveGroupContext = createContext<ActiveGroupContextValue>({
@@ -33,6 +35,8 @@ const ActiveGroupContext = createContext<ActiveGroupContextValue>({
   setActiveGroupId: () => {},
   loading: true,
   refresh: () => {},
+  pendingByGroup: {},
+  totalPendingRequests: 0,
 });
 
 const STORAGE_KEY = "activeGroupId";
@@ -54,6 +58,7 @@ export function ActiveGroupProvider({ children }: { children: ReactNode }) {
     localStorage.getItem(STORAGE_KEY)
   );
   const [loading, setLoading] = useState(true);
+  const [pendingByGroup, setPendingByGroup] = useState<Record<string, number>>({});
   const requestId = useRef(0);
 
   const load = useCallback(() => {
@@ -100,6 +105,26 @@ export function ActiveGroupProvider({ children }: { children: ReactNode }) {
     }
   }, [groups, activeGroupId]);
 
+  useEffect(() => {
+    const adminGroupIds = groups.filter((g) => g.role === "admin" && g.status === "approved").map((g) => g.group_id);
+    if (adminGroupIds.length === 0) {
+      setPendingByGroup({});
+      return;
+    }
+    supabase
+      .from("enrollments")
+      .select("group_id")
+      .in("group_id", adminGroupIds)
+      .eq("status", "pending")
+      .then(({ data }) => {
+        const counts: Record<string, number> = {};
+        (data ?? []).forEach((row) => {
+          counts[row.group_id] = (counts[row.group_id] ?? 0) + 1;
+        });
+        setPendingByGroup(counts);
+      });
+  }, [groups]);
+
   function setActiveGroupId(id: string) {
     setActiveGroupIdState(id);
     localStorage.setItem(STORAGE_KEY, id);
@@ -107,10 +132,21 @@ export function ActiveGroupProvider({ children }: { children: ReactNode }) {
 
   const approvedGroups = groups.filter((g) => g.status === "approved");
   const activeGroup = approvedGroups.find((g) => g.group_id === activeGroupId) ?? null;
+  const totalPendingRequests = Object.values(pendingByGroup).reduce((a, b) => a + b, 0);
 
   return (
     <ActiveGroupContext.Provider
-      value={{ groups, approvedGroups, activeGroupId, activeGroup, setActiveGroupId, loading, refresh: load }}
+      value={{
+        groups,
+        approvedGroups,
+        activeGroupId,
+        activeGroup,
+        setActiveGroupId,
+        loading,
+        refresh: load,
+        pendingByGroup,
+        totalPendingRequests,
+      }}
     >
       {children}
     </ActiveGroupContext.Provider>
