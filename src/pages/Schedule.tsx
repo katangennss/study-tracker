@@ -12,6 +12,7 @@ type Period = {
   room: string | null;
   starts_at: string;
   ends_at: string;
+  subject_id: string | null;
   subjects: { name: string; color: string } | null;
 };
 
@@ -39,7 +40,7 @@ const DAY_KEYS: TranslationKey[] = [
   "schedule.dayFri",
 ];
 
-function SchoolSchedule({ groupId }: { groupId: string }) {
+function SchoolSchedule({ groupId, isAdmin }: { groupId: string; isAdmin: boolean }) {
   const { t } = useLanguage();
   const days = weekDates();
   const todayIso = new Date().getDay() === 0 ? 7 : new Date().getDay();
@@ -55,7 +56,7 @@ function SchoolSchedule({ groupId }: { groupId: string }) {
   function load() {
     supabase
       .from("schedule_periods")
-      .select("id, period_num, room, starts_at, ends_at, subjects(name, color)")
+      .select("id, period_num, room, starts_at, ends_at, subject_id, subjects(name, color)")
       .eq("group_id", groupId)
       .eq("day_of_week", activeDow)
       .order("period_num")
@@ -106,8 +107,23 @@ function SchoolSchedule({ groupId }: { groupId: string }) {
     setSaving(false);
   }
 
-  async function handleDelete(periodId: string) {
+  async function handleDelete(periodId: string, subjectId: string | null) {
     await supabase.from("schedule_periods").delete().eq("id", periodId);
+
+    if (subjectId) {
+      const { count: remainingPeriods } = await supabase
+        .from("schedule_periods")
+        .select("id", { count: "exact", head: true })
+        .eq("subject_id", subjectId);
+      const { count: gradeCount } = await supabase
+        .from("grades")
+        .select("id", { count: "exact", head: true })
+        .eq("subject_id", subjectId);
+      if ((remainingPeriods ?? 0) === 0 && (gradeCount ?? 0) === 0) {
+        await supabase.from("subjects").delete().eq("id", subjectId);
+      }
+    }
+
     load();
   }
 
@@ -143,9 +159,11 @@ function SchoolSchedule({ groupId }: { groupId: string }) {
                     <div className="period-name">{p.subjects?.name ?? t("common.untitled")}</div>
                     {p.room && <div className="period-room">{p.room}</div>}
                   </div>
-                  <button type="button" className="link-btn" onClick={() => handleDelete(p.id)}>
-                    {t("common.remove")}
-                  </button>
+                  {isAdmin && (
+                    <button type="button" className="link-btn" onClick={() => handleDelete(p.id, p.subject_id)}>
+                      {t("common.remove")}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -153,50 +171,53 @@ function SchoolSchedule({ groupId }: { groupId: string }) {
         )}
       </div>
 
-      {adding ? (
-        <div className="panel">
-          <div className="panel-label">{t("schedule.addPeriodFor", { day: t(DAY_KEYS[activeDow - 1]) })}</div>
-          <form onSubmit={handleAdd}>
-            <div className="field">
-              <label className="field-label">{t("schedule.subject")}</label>
-              <input className="field-input" value={subjectName} onChange={(e) => setSubjectName(e.target.value)} />
+      {isAdmin && (
+        <>
+          {adding ? (
+            <div className="panel">
+              <div className="panel-label">{t("schedule.addPeriodFor", { day: t(DAY_KEYS[activeDow - 1]) })}</div>
+              <form onSubmit={handleAdd}>
+                <div className="field">
+                  <label className="field-label">{t("schedule.subject")}</label>
+                  <input className="field-input" value={subjectName} onChange={(e) => setSubjectName(e.target.value)} />
+                </div>
+                <div className="field">
+                  <label className="field-label">{t("schedule.roomOptional")}</label>
+                  <input className="field-input" value={room} onChange={(e) => setRoom(e.target.value)} />
+                </div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <div className="field" style={{ flex: 1 }}>
+                    <label className="field-label">{t("schedule.starts")}</label>
+                    <input className="field-input" type="time" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
+                  </div>
+                  <div className="field" style={{ flex: 1 }}>
+                    <label className="field-label">{t("schedule.ends")}</label>
+                    <input className="field-input" type="time" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button className="primary-btn" disabled={saving}>
+                    {saving ? t("schedule.adding") : t("schedule.addPeriod")}
+                  </button>
+                  <button
+                    type="button"
+                    className="primary-btn"
+                    style={{ background: "var(--card)", color: "var(--ink)", border: "1px solid var(--line)" }}
+                    onClick={() => setAdding(false)}
+                  >
+                    {t("common.cancel")}
+                  </button>
+                </div>
+              </form>
             </div>
-            <div className="field">
-              <label className="field-label">{t("schedule.roomOptional")}</label>
-              <input className="field-input" value={room} onChange={(e) => setRoom(e.target.value)} />
-            </div>
-            <div style={{ display: "flex", gap: 10 }}>
-              <div className="field" style={{ flex: 1 }}>
-                <label className="field-label">{t("schedule.starts")}</label>
-                <input className="field-input" type="time" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
-              </div>
-              <div className="field" style={{ flex: 1 }}>
-                <label className="field-label">{t("schedule.ends")}</label>
-                <input className="field-input" type="time" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 10 }}>
-              <button className="primary-btn" disabled={saving}>
-                {saving ? t("schedule.adding") : t("schedule.addPeriod")}
-              </button>
-              <button
-                type="button"
-                className="primary-btn"
-                style={{ background: "var(--card)", color: "var(--ink)", border: "1px solid var(--line)" }}
-                onClick={() => setAdding(false)}
-              >
-                {t("common.cancel")}
-              </button>
-            </div>
-          </form>
-        </div>
-      ) : (
-        <button type="button" className="list-row" style={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: "var(--radius)", width: "100%" }} onClick={() => setAdding(true)}>
-          <span className="list-row-label">{t("schedule.addPeriodBtn")}</span>
-        </button>
+          ) : (
+            <button type="button" className="list-row" style={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: "var(--radius)", width: "100%" }} onClick={() => setAdding(true)}>
+              <span className="list-row-label">{t("schedule.addPeriodBtn")}</span>
+            </button>
+          )}
+          <div className="hint">{t("schedule.editHint")}</div>
+        </>
       )}
-
-      <div className="hint">{t("schedule.editHint")}</div>
     </>
   );
 }
@@ -378,7 +399,7 @@ export default function Schedule() {
       {approvedGroups.length === 0 ? (
         <div className="empty-state">{t("schedule.joinToSee")}</div>
       ) : activeGroup?.type === "school_class" ? (
-        <SchoolSchedule groupId={activeGroup.group_id} />
+        <SchoolSchedule groupId={activeGroup.group_id} isAdmin={activeGroup.role === "admin"} />
       ) : activeGroup ? (
         <CourseSessions
           groupId={activeGroup.group_id}

@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import SubpageHeader from "../components/SubpageHeader";
 import { supabase } from "../lib/supabase";
 import { useLanguage } from "../lib/i18n";
+import { useActiveGroup } from "../lib/activeGroup";
 
 type RosterRow = {
   student_id: string;
@@ -14,6 +15,7 @@ type RosterRow = {
 export default function AdminRoster() {
   const { groupId } = useParams<{ groupId: string }>();
   const { t } = useLanguage();
+  const { refresh } = useActiveGroup();
   const [rows, setRows] = useState<RosterRow[]>([]);
 
   function load() {
@@ -30,16 +32,19 @@ export default function AdminRoster() {
   async function setStatus(studentId: string, status: "approved" | "rejected") {
     await supabase.from("enrollments").update({ status }).eq("group_id", groupId!).eq("student_id", studentId);
     load();
+    refresh();
   }
 
   async function remove(studentId: string) {
     await supabase.from("enrollments").delete().eq("group_id", groupId!).eq("student_id", studentId);
     load();
+    refresh();
   }
 
   async function makeAdmin(studentId: string) {
     await supabase.from("enrollments").update({ role: "admin" }).eq("group_id", groupId!).eq("student_id", studentId);
     load();
+    refresh();
   }
 
   const pending = rows.filter((r) => r.status === "pending");
