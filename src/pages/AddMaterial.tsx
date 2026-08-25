@@ -4,11 +4,13 @@ import SubpageHeader from "../components/SubpageHeader";
 import { useAuth } from "../lib/auth";
 import { useActiveGroup } from "../lib/activeGroup";
 import { supabase } from "../lib/supabase";
+import { useLanguage } from "../lib/i18n";
 
 export default function AddMaterial() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { activeGroup } = useActiveGroup();
+  const { t } = useLanguage();
 
   const [mode, setMode] = useState<"link" | "file">("link");
   const [title, setTitle] = useState("");
@@ -55,21 +57,21 @@ export default function AddMaterial() {
 
   return (
     <div className="page">
-      <SubpageHeader title="Add Material" back="/materials" />
+      <SubpageHeader title={t("addMaterial.title")} back="/materials" />
 
       <div className="toggle">
         <div className={"toggle-opt" + (mode === "link" ? " active" : "")} onClick={() => setMode("link")}>
-          Link
+          {t("addMaterial.link")}
         </div>
         <div className={"toggle-opt" + (mode === "file" ? " active" : "")} onClick={() => setMode("file")}>
-          File or Photo
+          {t("addMaterial.fileOrPhoto")}
         </div>
       </div>
 
       <form onSubmit={handleSubmit}>
         <div className="field">
           <label className="field-label" htmlFor="title">
-            Title
+            {t("addMaterial.titleField")}
           </label>
           <input id="title" className="field-input" value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
@@ -77,7 +79,7 @@ export default function AddMaterial() {
         {mode === "link" ? (
           <div className="field">
             <label className="field-label" htmlFor="url">
-              Link
+              {t("addMaterial.linkField")}
             </label>
             <input
               id="url"
@@ -90,7 +92,7 @@ export default function AddMaterial() {
         ) : (
           <div className="field">
             <label className="field-label" htmlFor="file">
-              File or photo
+              {t("addMaterial.fileField")}
             </label>
             <input
               id="file"
@@ -109,7 +111,7 @@ export default function AddMaterial() {
         )}
 
         <button className="primary-btn" disabled={saving}>
-          {saving ? "Adding…" : "Add Material"}
+          {saving ? t("addMaterial.adding") : t("addMaterial.title")}
         </button>
       </form>
     </div>

@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import SubpageHeader from "../components/SubpageHeader";
 import { supabase } from "../lib/supabase";
+import { useLanguage } from "../lib/i18n";
 
 type GroupInfo = { name: string; org_name: string; invite_code: string };
 
 export default function AdminDashboard() {
   const { groupId } = useParams<{ groupId: string }>();
+  const { t } = useLanguage();
   const [group, setGroup] = useState<GroupInfo | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
 
@@ -29,34 +31,31 @@ export default function AdminDashboard() {
 
   return (
     <div className="page">
-      <SubpageHeader title={group?.name ?? "Manage Class"} back="/profile" />
+      <SubpageHeader title={group?.name ?? t("admin.manageClass")} back="/profile" />
 
       <div className="panel-label">{group?.org_name}</div>
 
       <div className="list">
         <Link className="list-row" to={`/admin/${groupId}/roster`}>
-          <span className="list-row-label">Roster</span>
-          {pendingCount > 0 && <span className="grade-pill">{pendingCount} pending</span>}
+          <span className="list-row-label">{t("admin.roster")}</span>
+          {pendingCount > 0 && <span className="grade-pill">{t("admin.pending", { count: pendingCount })}</span>}
           <span className="list-row-chevron">›</span>
         </Link>
         <Link className="list-row" to={`/admin/${groupId}/homework`}>
-          <span className="list-row-label">Homework</span>
+          <span className="list-row-label">{t("admin.homework")}</span>
           <span className="list-row-chevron">›</span>
         </Link>
         <Link className="list-row" to={`/admin/${groupId}/settings`}>
-          <span className="list-row-label">Settings</span>
+          <span className="list-row-label">{t("admin.settings")}</span>
           <span className="list-row-chevron">›</span>
         </Link>
       </div>
 
-      <div className="hint">
-        Materials are managed from the regular Materials tab — switch to this class there and you'll see
-        admin controls to add or remove them.
-      </div>
+      <div className="hint">{t("admin.materialsHint")}</div>
 
       {group && (
         <div className="panel" style={{ textAlign: "center", marginTop: 24 }}>
-          <div className="stat-label">Invite code</div>
+          <div className="stat-label">{t("admin.inviteCode")}</div>
           <div className="hero-value mono-data" style={{ fontSize: 26 }}>
             {group.invite_code}
           </div>

@@ -5,6 +5,7 @@ import { useAuth } from "../lib/auth";
 import { useActiveGroup } from "../lib/activeGroup";
 import { isoDayOfWeek, todayISODate, formatTime } from "../lib/dates";
 import ClassSwitcher from "../components/ClassSwitcher";
+import { useLanguage } from "../lib/i18n";
 
 type Period = {
   id: string;
@@ -24,15 +25,15 @@ type HomeworkRow = {
 
 type MaterialRow = { id: string; title: string; created_at: string };
 
-const GREETINGS = ["Good morning", "Good afternoon", "Good evening"];
-function greeting() {
-  const h = new Date().getHours();
-  return GREETINGS[h < 12 ? 0 : h < 18 ? 1 : 2];
-}
-
 export default function Home() {
   const { user } = useAuth();
   const { activeGroup, approvedGroups, loading: groupsLoading } = useActiveGroup();
+  const { t } = useLanguage();
+
+  function greeting() {
+    const h = new Date().getHours();
+    return h < 12 ? t("home.greetingMorning") : h < 18 ? t("home.greetingAfternoon") : t("home.greetingEvening");
+  }
 
   const [periods, setPeriods] = useState<Period[]>([]);
   const [homework, setHomework] = useState<HomeworkRow[]>([]);
@@ -126,18 +127,18 @@ export default function Home() {
       {!groupsLoading && approvedGroups.length === 0 ? (
         <div className="panel">
           <div className="empty-state">
-            You're not in any classes yet.
+            {t("home.noClassesYet")}
             <br />
             <Link to="/profile/add-class" className="link-btn" style={{ color: "var(--accent, var(--teal))" }}>
-              Join or create one →
+              {t("home.joinOrCreate")}
             </Link>
           </div>
         </div>
       ) : activeGroup?.type === "school_class" ? (
         <div className="panel">
-          <h2>Today's Schedule</h2>
+          <h2>{t("home.todaysSchedule")}</h2>
           {periods.length === 0 ? (
-            <div className="empty-state">Nothing scheduled today.</div>
+            <div className="empty-state">{t("home.nothingScheduledToday")}</div>
           ) : (
             <div className="timeline">
               {periods.map((p) => (
@@ -148,7 +149,7 @@ export default function Home() {
                       <div className="period-time mono-data">
                         {formatTime(p.starts_at)}–{formatTime(p.ends_at)}
                       </div>
-                      <div className="period-name">{p.subjects?.name ?? "Untitled"}</div>
+                      <div className="period-name">{p.subjects?.name ?? t("common.untitled")}</div>
                       {p.room && <div className="period-room">{p.room}</div>}
                     </div>
                   </div>
@@ -159,10 +160,10 @@ export default function Home() {
         </div>
       ) : activeGroup ? (
         <div className="panel">
-          <h2>Sessions</h2>
+          <h2>{t("home.sessions")}</h2>
           <div className="stat-row">
             <div className="stat">
-              <div className="stat-label">Attended this package</div>
+              <div className="stat-label">{t("home.attendedThisPackage")}</div>
               <div className="stat-value mono-data">
                 {attendance.attended}
                 {activeGroup.total_sessions ? ` / ${activeGroup.total_sessions}` : ""}
@@ -174,9 +175,9 @@ export default function Home() {
 
       {activeGroup && (
         <div className="panel">
-          <h2>Due Soon</h2>
+          <h2>{t("home.dueSoon")}</h2>
           {homework.length === 0 ? (
-            <div className="empty-state">Nothing due.</div>
+            <div className="empty-state">{t("home.nothingDue")}</div>
           ) : (
             homework.map((h) => (
               <div className="resource-row" key={h.id}>
@@ -184,7 +185,7 @@ export default function Home() {
                 <div style={{ flex: 1 }}>
                   <div className="resource-title">{h.text}</div>
                   <div className="resource-sub">
-                    {h.subjects?.name} · Due {h.due_date}
+                    {h.subjects?.name} · {t("homework.due", { date: h.due_date })}
                   </div>
                 </div>
               </div>
@@ -195,7 +196,7 @@ export default function Home() {
 
       {activeGroup && materials.length > 0 && (
         <div className="panel">
-          <h2>New in Materials</h2>
+          <h2>{t("home.newInMaterials")}</h2>
           {materials.map((m) => (
             <div className="resource-row" key={m.id}>
               <div className="dot" style={{ background: "#6C63FF" }} />

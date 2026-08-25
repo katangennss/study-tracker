@@ -1,26 +1,19 @@
 import SubpageHeader from "../components/SubpageHeader";
+import { useLanguage } from "../lib/i18n";
 
 export default function ProfileAbout() {
+  const { t } = useLanguage();
   return (
     <div className="page">
-      <SubpageHeader title="About" />
+      <SubpageHeader title={t("about.title")} />
 
       <div className="about-block">
-        <div className="about-mark">A</div>
-        <div className="profile-name">Study Tracker</div>
-        <div className="about-version">Version 0.1.0</div>
+        <div className="about-mark">S</div>
+        <div className="profile-name">{t("about.appName")}</div>
+        <div className="about-version">{t("about.version")}</div>
       </div>
 
-      <div className="list">
-        <div className="list-row" style={{ cursor: "default" }}>
-          <span className="list-row-label">School</span>
-          <span className="list-row-value">Argishti High School</span>
-        </div>
-      </div>
-
-      <div className="hint">
-        Schedule, homework, grades, and shared materials for your class — all in one place.
-      </div>
+      <div className="hint">{t("about.hint")}</div>
     </div>
   );
 }

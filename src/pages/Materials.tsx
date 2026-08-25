@@ -5,6 +5,7 @@ import { useActiveGroup } from "../lib/activeGroup";
 import { supabase } from "../lib/supabase";
 import ClassSwitcher from "../components/ClassSwitcher";
 import { PlusIcon } from "../components/icons";
+import { useLanguage } from "../lib/i18n";
 
 type Material = {
   id: string;
@@ -18,6 +19,7 @@ type Material = {
 export default function Materials() {
   const { user } = useAuth();
   const { activeGroup, approvedGroups } = useActiveGroup();
+  const { t } = useLanguage();
 
   const [materials, setMaterials] = useState<Material[]>([]);
   const [fileUrls, setFileUrls] = useState<Record<string, string>>({});
@@ -64,15 +66,15 @@ export default function Materials() {
 
   return (
     <div className="page">
-      <div className="pagetitle">Materials</div>
+      <div className="pagetitle">{t("materials.title")}</div>
       <ClassSwitcher />
 
       {approvedGroups.length === 0 ? (
-        <div className="empty-state">Join or create a class to see materials here.</div>
+        <div className="empty-state">{t("materials.joinToSee")}</div>
       ) : (
         <>
           {materials.length === 0 ? (
-            <div className="empty-state">No materials yet.</div>
+            <div className="empty-state">{t("materials.none")}</div>
           ) : (
             <div className="panel">
               {materials.map((m) => {
@@ -91,7 +93,7 @@ export default function Materials() {
                     </div>
                     {(canPost || m.uploader_id === user?.id) && (
                       <button type="button" className="link-btn" onClick={() => handleDelete(m)}>
-                        Remove
+                        {t("common.remove")}
                       </button>
                     )}
                   </div>
@@ -109,7 +111,7 @@ export default function Materials() {
               <span className="list-row-icon">
                 <PlusIcon />
               </span>
-              <span className="list-row-label">Add Material</span>
+              <span className="list-row-label">{t("materials.add")}</span>
             </Link>
           )}
         </>

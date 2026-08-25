@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { PlayIcon, PauseIcon, ResetIcon, SkipIcon, GearIcon } from "../components/icons";
+import { useLanguage } from "../lib/i18n";
 
 type Mode = "focus" | "short" | "long";
 
@@ -17,8 +18,6 @@ function loadSettings(): Settings {
     return DEFAULTS;
   }
 }
-
-const MODE_LABEL: Record<Mode, string> = { focus: "Focus", short: "Short Break", long: "Long Break" };
 
 function beep() {
   try {
@@ -38,6 +37,12 @@ function beep() {
 }
 
 export default function Timer() {
+  const { t } = useLanguage();
+  const MODE_LABEL: Record<Mode, string> = {
+    focus: t("timer.modeFocus"),
+    short: t("timer.modeShort"),
+    long: t("timer.modeLong"),
+  };
   const [settings, setSettings] = useState<Settings>(loadSettings);
   const [mode, setMode] = useState<Mode>("focus");
   const [secondsLeft, setSecondsLeft] = useState(settings.focus * 60);
@@ -109,14 +114,14 @@ export default function Timer() {
 
   return (
     <div className="page">
-      <div className="pagetitle">Focus</div>
+      <div className="pagetitle">{t("timer.title")}</div>
 
       {editing ? (
         <div className="panel">
-          <div className="panel-label">EDIT TIMES (MINUTES)</div>
+          <div className="panel-label">{t("timer.editTimesMinutes")}</div>
           <form onSubmit={saveSettings}>
             <div className="field">
-              <label className="field-label">Focus</label>
+              <label className="field-label">{t("timer.focus")}</label>
               <input
                 className="field-input"
                 type="number"
@@ -126,7 +131,7 @@ export default function Timer() {
               />
             </div>
             <div className="field">
-              <label className="field-label">Short break</label>
+              <label className="field-label">{t("timer.shortBreak")}</label>
               <input
                 className="field-input"
                 type="number"
@@ -136,7 +141,7 @@ export default function Timer() {
               />
             </div>
             <div className="field">
-              <label className="field-label">Long break</label>
+              <label className="field-label">{t("timer.longBreak")}</label>
               <input
                 className="field-input"
                 type="number"
@@ -146,7 +151,7 @@ export default function Timer() {
               />
             </div>
             <div className="field">
-              <label className="field-label">Focus sessions before a long break</label>
+              <label className="field-label">{t("timer.cyclesBeforeLong")}</label>
               <input
                 className="field-input"
                 type="number"
@@ -156,7 +161,7 @@ export default function Timer() {
               />
             </div>
             <div style={{ display: "flex", gap: 10 }}>
-              <button className="primary-btn">Save</button>
+              <button className="primary-btn">{t("common.save")}</button>
               <button
                 type="button"
                 className="primary-btn"
@@ -166,7 +171,7 @@ export default function Timer() {
                   setEditing(false);
                 }}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           </form>
@@ -179,7 +184,7 @@ export default function Timer() {
             </span>
             <button type="button" className="link-btn" onClick={() => setEditing(true)} aria-label="Edit times">
               <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                <GearIcon className="timer-gear" /> Edit times
+                <GearIcon className="timer-gear" /> {t("timer.editTimes")}
               </span>
             </button>
           </div>

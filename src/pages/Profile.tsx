@@ -4,6 +4,7 @@ import { PencilIcon, BellIcon, GearIcon, InfoIcon, HelpCircleIcon, LogOutIcon, P
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../lib/auth";
 import { useActiveGroup } from "../lib/activeGroup";
+import { useLanguage } from "../lib/i18n";
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/);
@@ -14,6 +15,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { groups, loading } = useActiveGroup();
+  const { t } = useLanguage();
   const [fullName, setFullName] = useState("");
 
   useEffect(() => {
@@ -34,19 +36,21 @@ export default function Profile() {
 
   return (
     <div className="page">
-      <div className="pagetitle">Profile</div>
+      <div className="pagetitle">{t("profile.title")}</div>
 
       <div className="profile-header">
         <div className="avatar-lg">{initials(fullName)}</div>
         <div className="profile-name">{fullName || "…"}</div>
-        <div className="profile-sub">{approvedCount} {approvedCount === 1 ? "class" : "classes"}</div>
+        <div className="profile-sub">
+          {approvedCount} {approvedCount === 1 ? t("profile.class") : t("profile.classes")}
+        </div>
       </div>
 
-      <div className="panel-label">MY CLASSES</div>
+      <div className="panel-label">{t("profile.myClasses")}</div>
       <div className="list">
         {loading ? (
           <div className="list-row" style={{ cursor: "default" }}>
-            <span className="list-row-label">Loading…</span>
+            <span className="list-row-label">…</span>
           </div>
         ) : (
           groups.map((g) => (
@@ -57,19 +61,14 @@ export default function Profile() {
                   {g.name}
                 </span>
                 <span className="resource-sub">
-                  {g.org_name} · {g.type === "school_class" ? "School class" : "Course"}
-                  {g.status === "pending" && " · Pending approval"}
-                  {g.role === "admin" && " · Admin"}
+                  {g.org_name} · {g.type === "school_class" ? t("profile.schoolClass") : t("profile.course")}
+                  {g.status === "pending" && ` · ${t("profile.pendingApproval")}`}
+                  {g.role === "admin" && ` · ${t("profile.admin")}`}
                 </span>
               </span>
               {g.role === "admin" && g.status === "approved" && (
-                <button
-                  type="button"
-                  className="link-btn"
-                  style={{ background: "none", border: "none", cursor: "pointer" }}
-                  onClick={() => navigate(`/admin/${g.group_id}`)}
-                >
-                  Manage
+                <button type="button" className="link-btn" onClick={() => navigate(`/admin/${g.group_id}`)}>
+                  {t("profile.manage")}
                 </button>
               )}
             </div>
@@ -79,7 +78,7 @@ export default function Profile() {
           <span className="list-row-icon">
             <PlusIcon />
           </span>
-          <span className="list-row-label">Add a Class</span>
+          <span className="list-row-label">{t("profile.addClass")}</span>
         </button>
       </div>
 
@@ -88,35 +87,35 @@ export default function Profile() {
           <span className="list-row-icon">
             <PencilIcon />
           </span>
-          <span className="list-row-label">Edit Profile</span>
+          <span className="list-row-label">{t("profile.editProfile")}</span>
           <span className="list-row-chevron">›</span>
         </Link>
         <Link className="list-row" to="/profile/notifications">
           <span className="list-row-icon">
             <BellIcon />
           </span>
-          <span className="list-row-label">Notifications</span>
+          <span className="list-row-label">{t("profile.notifications")}</span>
           <span className="list-row-chevron">›</span>
         </Link>
         <Link className="list-row" to="/profile/settings">
           <span className="list-row-icon">
             <GearIcon />
           </span>
-          <span className="list-row-label">Settings</span>
+          <span className="list-row-label">{t("profile.settings")}</span>
           <span className="list-row-chevron">›</span>
         </Link>
         <Link className="list-row" to="/profile/help">
           <span className="list-row-icon">
             <HelpCircleIcon />
           </span>
-          <span className="list-row-label">Help</span>
+          <span className="list-row-label">{t("profile.help")}</span>
           <span className="list-row-chevron">›</span>
         </Link>
         <Link className="list-row" to="/profile/about">
           <span className="list-row-icon">
             <InfoIcon />
           </span>
-          <span className="list-row-label">About</span>
+          <span className="list-row-label">{t("profile.about")}</span>
           <span className="list-row-chevron">›</span>
         </Link>
       </div>
@@ -126,7 +125,7 @@ export default function Profile() {
           <span className="list-row-icon">
             <LogOutIcon />
           </span>
-          <span className="list-row-label">Sign Out</span>
+          <span className="list-row-label">{t("profile.signOut")}</span>
         </button>
       </div>
     </div>

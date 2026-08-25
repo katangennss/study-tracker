@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import SubpageHeader from "../components/SubpageHeader";
 import { supabase } from "../lib/supabase";
 import { useActiveGroup } from "../lib/activeGroup";
+import { useLanguage } from "../lib/i18n";
 
 export default function ProfileAddClass() {
   const navigate = useNavigate();
   const { refresh } = useActiveGroup();
+  const { t } = useLanguage();
   const [mode, setMode] = useState<"join" | "create">("join");
 
   const [code, setCode] = useState("");
@@ -29,9 +31,9 @@ export default function ProfileAddClass() {
     const { data, error } = await supabase.rpc("join_group_with_code", { code: code.trim().toUpperCase() });
     setJoining(false);
     if (error) {
-      setJoinError(error.message.includes("Invalid") ? "That code doesn't match a class." : error.message);
+      setJoinError(error.message.includes("Invalid") ? t("addClass.invalidCode") : error.message);
     } else {
-      setJoinedName(data?.name ?? "the class");
+      setJoinedName(data?.name ?? "");
       refresh();
     }
   }
@@ -57,28 +59,25 @@ export default function ProfileAddClass() {
 
   return (
     <div className="page">
-      <SubpageHeader title="Add a Class" back="/profile" />
+      <SubpageHeader title={t("addClass.title")} back="/profile" />
 
       <div className="toggle">
         <div className={"toggle-opt" + (mode === "join" ? " active" : "")} onClick={() => setMode("join")}>
-          Join with a code
+          {t("addClass.joinWithCode")}
         </div>
         <div className={"toggle-opt" + (mode === "create" ? " active" : "")} onClick={() => setMode("create")}>
-          Create a class
+          {t("addClass.createClass")}
         </div>
       </div>
 
       {mode === "join" ? (
         joinedName ? (
-          <div className="empty-state">
-            Request sent to join "{joinedName}". An admin needs to approve you before it shows up as an
-            active class.
-          </div>
+          <div className="empty-state">{t("addClass.joinedMessage", { name: joinedName })}</div>
         ) : (
           <form onSubmit={handleJoin}>
             <div className="field">
               <label className="field-label" htmlFor="code">
-                Class code
+                {t("addClass.classCode")}
               </label>
               <input
                 id="code"
@@ -87,10 +86,7 @@ export default function ProfileAddClass() {
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
               />
-              <div className="field-hint">
-                Ask your teacher or instructor for the code. Joining sends a request — an admin has to
-                approve it before you can see that class's schedule, homework, or materials.
-              </div>
+              <div className="field-hint">{t("addClass.joinHint")}</div>
             </div>
             {joinError && (
               <div className="field-hint" style={{ color: "#c0392b", marginBottom: 14 }}>
@@ -98,25 +94,25 @@ export default function ProfileAddClass() {
               </div>
             )}
             <button className="primary-btn" type="submit" disabled={joining}>
-              {joining ? "Sending…" : "Request to Join"}
+              {joining ? t("addClass.sending") : t("addClass.requestToJoin")}
             </button>
           </form>
         )
       ) : createdCode ? (
         <div className="empty-state">
-          "{className}" is ready — you're its admin. Share this code so people can request to join:
+          {t("addClass.createdMessage", { name: className })}
           <div className="hero-value mono-data" style={{ fontSize: 28, marginTop: 12 }}>
             {createdCode}
           </div>
           <button className="primary-btn" style={{ marginTop: 16 }} onClick={() => navigate("/profile")}>
-            Done
+            {t("addClass.done")}
           </button>
         </div>
       ) : (
         <form onSubmit={handleCreate}>
           <div className="field">
             <label className="field-label" htmlFor="className">
-              Class or course name
+              {t("addClass.className")}
             </label>
             <input
               id="className"
@@ -128,7 +124,7 @@ export default function ProfileAddClass() {
           </div>
           <div className="field">
             <label className="field-label" htmlFor="orgName">
-              School or organization
+              {t("addClass.orgName")}
             </label>
             <input
               id="orgName"
@@ -140,7 +136,7 @@ export default function ProfileAddClass() {
           </div>
           <div className="field">
             <label className="field-label" htmlFor="type">
-              Type
+              {t("addClass.type")}
             </label>
             <select
               id="type"
@@ -148,13 +144,12 @@ export default function ProfileAddClass() {
               value={type}
               onChange={(e) => setType(e.target.value as "school_class" | "course")}
             >
-              <option value="course">Outside course (test prep, lessons, etc.)</option>
-              <option value="school_class">School class</option>
+              <option value="course">{t("addClass.typeCourse")}</option>
+              <option value="school_class">{t("addClass.typeSchool")}</option>
             </select>
           </div>
           <div className="field-hint" style={{ marginBottom: 14 }}>
-            You'll be this class's admin — you can approve who joins, review homework, and manage
-            materials.
+            {t("addClass.createHint")}
           </div>
           {createError && (
             <div className="field-hint" style={{ color: "#c0392b", marginBottom: 14 }}>
@@ -162,7 +157,7 @@ export default function ProfileAddClass() {
             </div>
           )}
           <button className="primary-btn" type="submit" disabled={creating}>
-            {creating ? "Creating…" : "Create Class"}
+            {creating ? t("addClass.creating") : t("addClass.createClassBtn")}
           </button>
         </form>
       )}

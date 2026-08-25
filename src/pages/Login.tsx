@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
+import { useLanguage } from "../lib/i18n";
 
 export default function Login() {
+  const { language, setLanguage, t } = useLanguage();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -25,7 +27,7 @@ export default function Login() {
       if (error) {
         setError(error.message);
       } else if (!data.session) {
-        setInfo("Check your email to confirm your account, then log in.");
+        setInfo(t("login.confirmEmail"));
       }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -37,16 +39,36 @@ export default function Login() {
 
   return (
     <div className="page" style={{ display: "flex", flexDirection: "column", justifyContent: "center", minHeight: "100%" }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 8 }}>
+        <button
+          type="button"
+          className="link-btn"
+          style={{ opacity: language === "en" ? 1 : 0.5 }}
+          onClick={() => setLanguage("en")}
+        >
+          EN
+        </button>
+        <span style={{ color: "var(--ink-soft)" }}>·</span>
+        <button
+          type="button"
+          className="link-btn"
+          style={{ opacity: language === "hy" ? 1 : 0.5 }}
+          onClick={() => setLanguage("hy")}
+        >
+          ՀԱՅ
+        </button>
+      </div>
+
       <div className="about-block" style={{ paddingTop: 0 }}>
-        <div className="about-mark">A</div>
-        <div className="profile-name">Study Tracker</div>
+        <div className="about-mark">S</div>
+        <div className="profile-name">{t("login.appName")}</div>
       </div>
 
       <form onSubmit={handleSubmit}>
         {mode === "signup" && (
           <div className="field">
             <label className="field-label" htmlFor="fullName">
-              Full name
+              {t("login.fullName")}
             </label>
             <input
               id="fullName"
@@ -60,7 +82,7 @@ export default function Login() {
 
         <div className="field">
           <label className="field-label" htmlFor="email">
-            Email
+            {t("login.email")}
           </label>
           <input
             id="email"
@@ -70,12 +92,12 @@ export default function Login() {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <div className="field-hint">Any email works — there's no school-email requirement.</div>
+          <div className="field-hint">{t("login.emailHint")}</div>
         </div>
 
         <div className="field">
           <label className="field-label" htmlFor="password">
-            Password
+            {t("login.password")}
           </label>
           <input
             id="password"
@@ -100,12 +122,12 @@ export default function Login() {
         )}
 
         <button className="primary-btn" type="submit" disabled={submitting}>
-          {submitting ? "Please wait…" : mode === "signup" ? "Create Account" : "Log In"}
+          {submitting ? t("login.pleaseWait") : mode === "signup" ? t("login.createAccount") : t("login.logIn")}
         </button>
       </form>
 
       <div className="hint" style={{ marginTop: 16 }}>
-        {mode === "signup" ? "Already have an account?" : "New here?"}{" "}
+        {mode === "signup" ? t("login.alreadyHaveAccount") : t("login.newHere")}{" "}
         <button
           type="button"
           onClick={() => {
@@ -115,7 +137,7 @@ export default function Login() {
           }}
           style={{ background: "none", border: "none", color: "var(--teal)", font: "inherit", fontWeight: 600, cursor: "pointer", padding: 0 }}
         >
-          {mode === "signup" ? "Log in" : "Create an account"}
+          {mode === "signup" ? t("login.logInLink") : t("login.createAccountLink")}
         </button>
       </div>
     </div>

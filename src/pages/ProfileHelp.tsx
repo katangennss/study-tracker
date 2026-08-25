@@ -1,22 +1,15 @@
 import { useState } from "react";
 import SubpageHeader from "../components/SubpageHeader";
+import { useLanguage, type TranslationKey } from "../lib/i18n";
 
-const faqs = [
-  {
-    q: "Only I can see my checked-off homework — is that really private?",
-    a: "Yes. Your checkmarks are stored against your account only; classmates and teachers never see them.",
-  },
-  {
-    q: "How is my GPA calculated?",
-    a: "Each grade converts to a quality point using your school's 10-point scale, then those are averaged per subject and overall.",
-  },
-  {
-    q: "Can I be part of more than one class?",
-    a: "Yes — add any class or course you attend (your school class, TOEFL prep, etc.) from Profile → My Classes.",
-  },
+const FAQ_KEYS: { qKey: TranslationKey; aKey: TranslationKey }[] = [
+  { qKey: "help.faq1q", aKey: "help.faq1a" },
+  { qKey: "help.faq2q", aKey: "help.faq2a" },
+  { qKey: "help.faq3q", aKey: "help.faq3a" },
 ];
 
 export default function ProfileHelp() {
+  const { t } = useLanguage();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [question, setQuestion] = useState("");
   const [sent, setSent] = useState(false);
@@ -31,25 +24,25 @@ export default function ProfileHelp() {
 
   return (
     <div className="page">
-      <SubpageHeader title="Help" />
+      <SubpageHeader title={t("help.title")} />
 
-      <div className="panel-label">FREQUENTLY ASKED</div>
+      <div className="panel-label">{t("help.faq")}</div>
       <div className="list">
-        {faqs.map((item, i) => {
+        {FAQ_KEYS.map((item, i) => {
           const isOpen = openIndex === i;
           return (
-            <div key={item.q}>
+            <div key={item.qKey}>
               <button
                 className="list-row"
                 onClick={() => setOpenIndex(isOpen ? null : i)}
                 style={{ whiteSpace: "normal" }}
               >
-                <span className="list-row-label">{item.q}</span>
+                <span className="list-row-label">{t(item.qKey)}</span>
                 <span className="list-row-chevron">{isOpen ? "⌄" : "›"}</span>
               </button>
               {isOpen && (
                 <div style={{ padding: "0 16px 14px", fontSize: 12.5, color: "var(--ink-soft)", lineHeight: 1.6 }}>
-                  {item.a}
+                  {t(item.aKey)}
                 </div>
               )}
             </div>
@@ -58,30 +51,28 @@ export default function ProfileHelp() {
       </div>
 
       <div className="panel-label" style={{ marginTop: 8 }}>
-        STILL NEED HELP?
+        {t("help.stillNeedHelp")}
       </div>
       {sent ? (
-        <div className="empty-state">
-          Thanks — your question was sent. We'll get back to you soon.
-        </div>
+        <div className="empty-state">{t("help.sent")}</div>
       ) : (
         <form onSubmit={handleSubmit}>
           <div className="field">
             <label className="field-label" htmlFor="question">
-              Ask a question
+              {t("help.askQuestion")}
             </label>
             <textarea
               id="question"
               className="field-input"
               rows={4}
-              placeholder="What's going on?"
+              placeholder={t("help.placeholder")}
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               style={{ resize: "vertical", fontFamily: "inherit" }}
             />
           </div>
           <button className="primary-btn" type="submit">
-            Send
+            {t("help.send")}
           </button>
         </form>
       )}

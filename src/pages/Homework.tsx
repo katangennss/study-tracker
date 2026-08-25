@@ -5,6 +5,7 @@ import { useActiveGroup } from "../lib/activeGroup";
 import { supabase } from "../lib/supabase";
 import ClassSwitcher from "../components/ClassSwitcher";
 import { PlusIcon } from "../components/icons";
+import { useLanguage } from "../lib/i18n";
 
 type HomeworkItem = {
   id: string;
@@ -25,6 +26,7 @@ type Submission = {
 export default function Homework() {
   const { user } = useAuth();
   const { activeGroup, approvedGroups } = useActiveGroup();
+  const { t } = useLanguage();
 
   const [items, setItems] = useState<HomeworkItem[]>([]);
   const [doneIds, setDoneIds] = useState<Set<string>>(new Set());
@@ -95,15 +97,15 @@ export default function Homework() {
 
   return (
     <div className="page">
-      <div className="pagetitle">Homework</div>
+      <div className="pagetitle">{t("homework.title")}</div>
       <ClassSwitcher />
 
       {approvedGroups.length === 0 ? (
-        <div className="empty-state">Join or create a class to see homework here.</div>
+        <div className="empty-state">{t("homework.joinToSee")}</div>
       ) : (
         <>
           {items.length === 0 ? (
-            <div className="empty-state">No homework yet.</div>
+            <div className="empty-state">{t("homework.none")}</div>
           ) : (
             <div className="group">
               {items.map((item) => {
@@ -130,12 +132,13 @@ export default function Homework() {
                     </div>
                     <div style={{ padding: "0 16px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                       <span className="resource-sub">
-                        {item.subjects?.name ? `${item.subjects.name} · ` : ""}Due {item.due_date}
+                        {item.subjects?.name ? `${item.subjects.name} · ` : ""}
+                        {t("homework.due", { date: item.due_date })}
                         {item.link_url && (
                           <>
                             {" · "}
                             <a className="link-btn" href={item.link_url} target="_blank" rel="noreferrer">
-                              View link
+                              {t("homework.viewLink")}
                             </a>
                           </>
                         )}
@@ -143,7 +146,7 @@ export default function Homework() {
                       {item.allow_file_submission &&
                         (submission ? (
                           <span className="grade-pill">
-                            {submission.score != null ? `Scored ${submission.score}` : "Submitted"}
+                            {submission.score != null ? t("homework.scored", { score: submission.score }) : t("homework.submitted")}
                           </span>
                         ) : (
                           <button
@@ -155,7 +158,7 @@ export default function Homework() {
                             }}
                             disabled={uploadingId === item.id}
                           >
-                            {uploadingId === item.id ? "Uploading…" : "Submit file"}
+                            {uploadingId === item.id ? t("homework.uploading") : t("homework.submitFile")}
                           </button>
                         ))}
                       {item.allow_file_submission && (
@@ -172,7 +175,7 @@ export default function Homework() {
                     </div>
                     {submission?.feedback && (
                       <div className="field-hint" style={{ padding: "0 16px 12px" }}>
-                        Feedback: {submission.feedback}
+                        {t("homework.feedback", { feedback: submission.feedback })}
                       </div>
                     )}
                   </div>
@@ -186,14 +189,11 @@ export default function Homework() {
               <span className="list-row-icon">
                 <PlusIcon />
               </span>
-              <span className="list-row-label">Add Task</span>
+              <span className="list-row-label">{t("homework.addTask")}</span>
             </Link>
           )}
 
-          <div className="hint">
-            Anyone in the class can add a task. Checking one off is visible to the admin; submitting a
-            file is optional, per task.
-          </div>
+          <div className="hint">{t("homework.hint")}</div>
         </>
       )}
     </div>

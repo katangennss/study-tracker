@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import SubpageHeader from "../components/SubpageHeader";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../lib/auth";
+import { useLanguage } from "../lib/i18n";
 
 export default function ProfileEdit() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -31,12 +33,12 @@ export default function ProfileEdit() {
 
   return (
     <div className="page">
-      <SubpageHeader title="Edit Profile" />
+      <SubpageHeader title={t("editProfile.title")} />
 
       <form onSubmit={handleSave}>
         <div className="field">
           <label className="field-label" htmlFor="name">
-            Full name
+            {t("editProfile.fullName")}
           </label>
           <input
             id="name"
@@ -48,15 +50,15 @@ export default function ProfileEdit() {
 
         <div className="field">
           <label className="field-label" htmlFor="email">
-            Email
+            {t("editProfile.email")}
           </label>
           <input id="email" className="field-input" value={user?.email ?? ""} disabled />
         </div>
 
         <button className="primary-btn" type="submit" disabled={saving}>
-          {saving ? "Saving…" : "Save Changes"}
+          {saving ? t("common.saving") : t("editProfile.save")}
         </button>
-        {saved && <div className="saved-note">Saved</div>}
+        {saved && <div className="saved-note">{t("common.saved")}</div>}
       </form>
     </div>
   );

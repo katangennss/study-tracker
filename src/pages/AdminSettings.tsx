@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import SubpageHeader from "../components/SubpageHeader";
 import { supabase } from "../lib/supabase";
 import { useActiveGroup } from "../lib/activeGroup";
+import { useLanguage } from "../lib/i18n";
 
 type GroupInfo = { name: string; org_name: string; allow_peer_materials: boolean; type: "school_class" | "course" };
 
@@ -10,6 +11,7 @@ export default function AdminSettings() {
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
   const { refresh } = useActiveGroup();
+  const { t } = useLanguage();
 
   const [name, setName] = useState("");
   const [orgName, setOrgName] = useState("");
@@ -58,32 +60,31 @@ export default function AdminSettings() {
 
   return (
     <div className="page">
-      <SubpageHeader title="Settings" back={`/admin/${groupId}`} />
+      <SubpageHeader title={t("adminSettings.title")} back={`/admin/${groupId}`} />
 
       <form onSubmit={handleSave}>
         <div className="field">
           <label className="field-label" htmlFor="name">
-            Class name
+            {t("adminSettings.className")}
           </label>
           <input id="name" className="field-input" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div className="field">
           <label className="field-label" htmlFor="org">
-            School or organization
+            {t("adminSettings.orgName")}
           </label>
           <input id="org" className="field-input" value={orgName} onChange={(e) => setOrgName(e.target.value)} />
         </div>
 
         {groupType === "school_class" ? (
           <div className="field-hint" style={{ marginBottom: 14 }}>
-            School classes have no teacher role — every member can already edit the schedule and post
-            homework and materials.
+            {t("adminSettings.schoolHint")}
           </div>
         ) : (
           <div className="switch-row" style={{ border: "1px solid var(--line)", borderRadius: "var(--radius)", marginBottom: 14 }}>
             <div>
-              <div className="switch-row-label">Allow peer-shared materials</div>
-              <div className="switch-row-sub">Let any member post to Materials, not just admins</div>
+              <div className="switch-row-label">{t("adminSettings.allowPeer")}</div>
+              <div className="switch-row-sub">{t("adminSettings.allowPeerSub")}</div>
             </div>
             <button
               type="button"
@@ -96,28 +97,27 @@ export default function AdminSettings() {
         )}
 
         <button className="primary-btn" disabled={saving}>
-          {saving ? "Saving…" : "Save Changes"}
+          {saving ? t("common.saving") : t("common.save")}
         </button>
-        {saved && <div className="saved-note">Saved</div>}
+        {saved && <div className="saved-note">{t("common.saved")}</div>}
       </form>
 
       <div className="panel-label" style={{ marginTop: 28, color: "#c0392b" }}>
-        DANGER ZONE
+        {t("adminSettings.dangerZone")}
       </div>
       <div className="list">
         {!confirmingDelete ? (
           <button type="button" className="list-row danger" onClick={() => setConfirmingDelete(true)}>
-            <span className="list-row-label">Delete Class</span>
+            <span className="list-row-label">{t("adminSettings.deleteClass")}</span>
           </button>
         ) : (
           <div style={{ padding: 16 }}>
             <div className="field-hint" style={{ marginBottom: 12 }}>
-              This permanently deletes the class for everyone — schedule, homework, materials, grades,
-              everything. This can't be undone.
+              {t("adminSettings.deleteWarning")}
             </div>
             <div style={{ display: "flex", gap: 10 }}>
               <button className="primary-btn" style={{ background: "#c0392b" }} onClick={handleDelete} disabled={deleting}>
-                {deleting ? "Deleting…" : "Yes, delete it"}
+                {deleting ? t("adminSettings.deleting") : t("adminSettings.confirmDelete")}
               </button>
               <button
                 type="button"
@@ -125,7 +125,7 @@ export default function AdminSettings() {
                 style={{ background: "var(--card)", color: "var(--ink)", border: "1px solid var(--line)" }}
                 onClick={() => setConfirmingDelete(false)}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           </div>

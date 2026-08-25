@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import SubpageHeader from "../components/SubpageHeader";
 import { supabase } from "../lib/supabase";
+import { useLanguage } from "../lib/i18n";
 
 type HomeworkItem = {
   id: string;
@@ -21,6 +22,7 @@ type Submission = {
 type StatusRow = { student_id: string; done: boolean; profiles: { full_name: string } | null };
 
 function SubmissionRow({ sub, onGraded }: { sub: Submission; onGraded: () => void }) {
+  const { t } = useLanguage();
   const [score, setScore] = useState(sub.score?.toString() ?? "");
   const [feedback, setFeedback] = useState(sub.feedback ?? "");
   const [fileUrl, setFileUrl] = useState<string | null>(null);
@@ -48,10 +50,10 @@ function SubmissionRow({ sub, onGraded }: { sub: Submission; onGraded: () => voi
   return (
     <div className="item" style={{ cursor: "default", flexDirection: "column", alignItems: "stretch", gap: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <span className="item-text">{sub.profiles?.full_name ?? "Unknown"}</span>
+        <span className="item-text">{sub.profiles?.full_name ?? t("common.unknown")}</span>
         {fileUrl && (
           <a className="link-btn" href={fileUrl} target="_blank" rel="noreferrer">
-            View file
+            {t("adminHomework.viewFile")}
           </a>
         )}
       </div>
@@ -59,18 +61,18 @@ function SubmissionRow({ sub, onGraded }: { sub: Submission; onGraded: () => voi
         <input
           className="field-input"
           style={{ width: 70 }}
-          placeholder="Score"
+          placeholder={t("adminHomework.scorePlaceholder")}
           value={score}
           onChange={(e) => setScore(e.target.value)}
         />
         <input
           className="field-input"
-          placeholder="Feedback (optional)"
+          placeholder={t("adminHomework.feedbackPlaceholder")}
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}
         />
         <button className="primary-btn" style={{ width: "auto", padding: "0 14px" }} disabled={saving}>
-          Save
+          {t("common.save")}
         </button>
       </form>
     </div>
@@ -79,6 +81,7 @@ function SubmissionRow({ sub, onGraded }: { sub: Submission; onGraded: () => voi
 
 export default function AdminHomework() {
   const { groupId } = useParams<{ groupId: string }>();
+  const { t } = useLanguage();
   const [items, setItems] = useState<HomeworkItem[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -123,14 +126,13 @@ export default function AdminHomework() {
 
   return (
     <div className="page">
-      <SubpageHeader title="Homework" back={`/admin/${groupId}`} />
+      <SubpageHeader title={t("adminHomework.title")} back={`/admin/${groupId}`} />
       <div className="hint" style={{ marginTop: 0 }}>
-        Anyone in the class can add tasks from the regular Homework tab. Here you can see who's completed
-        or submitted each one.
+        {t("adminHomework.hint")}
       </div>
 
       {items.length === 0 ? (
-        <div className="empty-state">Nothing assigned yet.</div>
+        <div className="empty-state">{t("adminHomework.none")}</div>
       ) : (
         <div className="group">
           {items.map((item) => (
@@ -139,7 +141,8 @@ export default function AdminHomework() {
                 <div className="group-title">
                   <div className="group-name">{item.text}</div>
                   <div className="group-due">
-                    {item.subjects?.name ? `${item.subjects.name} · ` : ""}Due {item.due_date}
+                    {item.subjects?.name ? `${item.subjects.name} · ` : ""}
+                    {t("homework.due", { date: item.due_date })}
                   </div>
                 </div>
                 <div className="chevron" style={openId === item.id ? { transform: "rotate(90deg)" } : undefined}>
@@ -151,7 +154,7 @@ export default function AdminHomework() {
                   {item.allow_file_submission ? (
                     submissions.length === 0 ? (
                       <div className="empty-state" style={{ padding: "12px 0" }}>
-                        No submissions yet.
+                        {t("adminHomework.noSubmissions")}
                       </div>
                     ) : (
                       submissions.map((s) => (
@@ -160,14 +163,14 @@ export default function AdminHomework() {
                     )
                   ) : statuses.length === 0 ? (
                     <div className="empty-state" style={{ padding: "12px 0" }}>
-                      No one has checked this off yet.
+                      {t("adminHomework.noChecks")}
                     </div>
                   ) : (
                     statuses.map((s) => (
                       <div className="resource-row" key={s.student_id}>
                         <span className="dot" style={{ background: s.done ? "#1D7A6E" : "#DCE2E6" }} />
-                        <div style={{ flex: 1 }}>{s.profiles?.full_name ?? "Unknown"}</div>
-                        <span className="resource-sub">{s.done ? "Done" : "Not yet"}</span>
+                        <div style={{ flex: 1 }}>{s.profiles?.full_name ?? t("common.unknown")}</div>
+                        <span className="resource-sub">{s.done ? t("common.done") : t("common.notYet")}</span>
                       </div>
                     ))
                   )}

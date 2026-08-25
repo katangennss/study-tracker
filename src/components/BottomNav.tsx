@@ -1,18 +1,20 @@
 import { NavLink } from "react-router-dom";
 import { PencilIcon, CalendarIcon, HomeIcon, FolderIcon, ChartIcon, TimerIcon } from "./icons";
 import { useActiveGroup } from "../lib/activeGroup";
+import { useLanguage } from "../lib/i18n";
 
 export default function BottomNav() {
   const { activeGroup } = useActiveGroup();
-  const scheduleLabel = activeGroup?.type === "course" ? "Sessions" : "Schedule";
+  const { t } = useLanguage();
+  const scheduleLabel = activeGroup?.type === "course" ? t("nav.sessions") : t("nav.schedule");
 
   const items = [
-    { to: "/homework", label: "Homework", Icon: PencilIcon },
+    { to: "/homework", label: t("nav.homework"), Icon: PencilIcon },
     { to: "/schedule", label: scheduleLabel, Icon: CalendarIcon },
-    { to: "/", label: "Home", Icon: HomeIcon, end: true },
-    { to: "/materials", label: "Materials", Icon: FolderIcon },
-    { to: "/gpa", label: "Grades", Icon: ChartIcon },
-    { to: "/timer", label: "Focus", Icon: TimerIcon },
+    { to: "/", label: t("nav.home"), Icon: HomeIcon, end: true },
+    { to: "/materials", label: t("nav.materials"), Icon: FolderIcon },
+    { to: "/gpa", label: t("nav.grades"), Icon: ChartIcon },
+    { to: "/timer", label: t("nav.focus"), Icon: TimerIcon },
   ];
 
   return (

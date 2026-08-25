@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import SubpageHeader from "../components/SubpageHeader";
 import { supabase } from "../lib/supabase";
+import { useLanguage } from "../lib/i18n";
 
 type RosterRow = {
   student_id: string;
@@ -12,6 +13,7 @@ type RosterRow = {
 
 export default function AdminRoster() {
   const { groupId } = useParams<{ groupId: string }>();
+  const { t } = useLanguage();
   const [rows, setRows] = useState<RosterRow[]>([]);
 
   function load() {
@@ -45,30 +47,30 @@ export default function AdminRoster() {
 
   return (
     <div className="page">
-      <SubpageHeader title="Roster" back={`/admin/${groupId}`} />
+      <SubpageHeader title={t("adminRoster.title")} back={`/admin/${groupId}`} />
 
       {pending.length > 0 && (
         <>
-          <div className="panel-label">PENDING</div>
+          <div className="panel-label">{t("adminRoster.pending")}</div>
           <div className="list">
             {pending.map((r) => (
               <div className="list-row" key={r.student_id} style={{ cursor: "default" }}>
-                <span className="list-row-label">{r.profiles?.full_name ?? "Unknown"}</span>
+                <span className="list-row-label">{r.profiles?.full_name ?? t("common.unknown")}</span>
                 <button
                   type="button"
                   className="link-btn"
-                  style={{ background: "none", border: "none", cursor: "pointer", marginRight: 10 }}
+                  style={{ marginRight: 10 }}
                   onClick={() => setStatus(r.student_id, "approved")}
                 >
-                  Approve
+                  {t("adminRoster.approve")}
                 </button>
                 <button
                   type="button"
                   className="link-btn"
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "#c0392b" }}
+                  style={{ color: "#c0392b" }}
                   onClick={() => setStatus(r.student_id, "rejected")}
                 >
-                  Reject
+                  {t("adminRoster.reject")}
                 </button>
               </div>
             ))}
@@ -76,16 +78,16 @@ export default function AdminRoster() {
         </>
       )}
 
-      <div className="panel-label">MEMBERS</div>
+      <div className="panel-label">{t("adminRoster.members")}</div>
       {approved.length === 0 ? (
-        <div className="empty-state">No approved members yet.</div>
+        <div className="empty-state">{t("adminRoster.noMembers")}</div>
       ) : (
         <div className="list">
           {approved.map((r) => (
             <div className="list-row" key={r.student_id} style={{ cursor: "default" }}>
               <span className="list-row-label">
-                {r.profiles?.full_name ?? "Unknown"}
-                {r.role === "admin" && " · Admin"}
+                {r.profiles?.full_name ?? t("common.unknown")}
+                {r.role === "admin" && ` · ${t("profile.admin")}`}
               </span>
               {r.role !== "admin" && (
                 <>
@@ -95,7 +97,7 @@ export default function AdminRoster() {
                     style={{ marginRight: 10 }}
                     onClick={() => makeAdmin(r.student_id)}
                   >
-                    Make Admin
+                    {t("adminRoster.makeAdmin")}
                   </button>
                   <button
                     type="button"
@@ -103,7 +105,7 @@ export default function AdminRoster() {
                     style={{ color: "#c0392b" }}
                     onClick={() => remove(r.student_id)}
                   >
-                    Remove
+                    {t("common.remove")}
                   </button>
                 </>
               )}

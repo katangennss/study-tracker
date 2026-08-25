@@ -6,17 +6,20 @@ import App from "./App";
 import { initTheme } from "./lib/theme";
 import { AuthProvider } from "./lib/auth";
 import { ActiveGroupProvider } from "./lib/activeGroup";
+import { LanguageProvider } from "./lib/i18n";
 
 initTheme();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <AuthProvider>
-      <ActiveGroupProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </ActiveGroupProvider>
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <ActiveGroupProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </ActiveGroupProvider>
+      </AuthProvider>
+    </LanguageProvider>
   </StrictMode>
 );

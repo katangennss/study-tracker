@@ -3,6 +3,7 @@ import { useAuth } from "../lib/auth";
 import { useActiveGroup } from "../lib/activeGroup";
 import { supabase } from "../lib/supabase";
 import ClassSwitcher from "../components/ClassSwitcher";
+import { useLanguage } from "../lib/i18n";
 
 type Subject = { id: string; name: string; color: string };
 type Grade = { id: string; subject_id: string | null; label: string | null; value: number; graded_at: string };
@@ -17,6 +18,7 @@ const toQualityPoints = (grade: number) => QUALITY_POINTS[Math.round(grade)] ?? 
 const gpa4Average = (grades: number[]) => average(grades.map(toQualityPoints));
 
 function SchoolGrades({ groupId, userId }: { groupId: string; userId: string }) {
+  const { t } = useLanguage();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [gradesBySubject, setGradesBySubject] = useState<Record<string, number[]>>({});
   const [openId, setOpenId] = useState<string | null>(null);
@@ -51,18 +53,16 @@ function SchoolGrades({ groupId, userId }: { groupId: string; userId: string }) 
   const overallGpa4 = average(subjectsWithGrades.map((s) => gpa4Average(gradesBySubject[s.id])));
 
   if (subjects.length === 0) {
-    return <div className="empty-state">No subjects set up for this class yet.</div>;
+    return <div className="empty-state">{t("gpa.noSubjects")}</div>;
   }
 
   return (
     <>
       {subjectsWithGrades.length > 0 && (
         <div className="hero" onClick={() => setGpaMode((m) => !m)}>
-          <div className="hero-label">{gpaMode ? "GPA (US scale)" : "Overall average"}</div>
+          <div className="hero-label">{gpaMode ? t("gpa.gpaScale") : t("gpa.overallAverage")}</div>
           <div className="hero-value mono-data">{(gpaMode ? overallGpa4 : overall10).toFixed(gpaMode ? 2 : 1)}</div>
-          <div className="hero-scale">
-            {gpaMode ? "out of 4.0 · tap for the 10-point scale" : "out of 10 · tap for the 4.0 scale"}
-          </div>
+          <div className="hero-scale">{gpaMode ? t("gpa.tapFor10") : t("gpa.tapFor4")}</div>
         </div>
       )}
 
@@ -87,7 +87,7 @@ function SchoolGrades({ groupId, userId }: { groupId: string; userId: string }) 
                     </span>
                   ))}
                 </div>
-                <div className="add-label">Add a grade</div>
+                <div className="add-label">{t("gpa.addGrade")}</div>
                 <div className="grade-picker">
                   {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
                     <div className="grade-btn" key={n} onClick={() => addGrade(s.id, n)}>
@@ -105,6 +105,7 @@ function SchoolGrades({ groupId, userId }: { groupId: string; userId: string }) 
 }
 
 function CourseGrades({ groupId, userId }: { groupId: string; userId: string }) {
+  const { t } = useLanguage();
   const [grades, setGrades] = useState<Grade[]>([]);
   const [label, setLabel] = useState("");
   const [value, setValue] = useState("");
@@ -147,12 +148,12 @@ function CourseGrades({ groupId, userId }: { groupId: string; userId: string }) 
           <div className="hero-value mono-data" style={{ fontSize: 32 }}>
             {overall.toFixed(1)}
           </div>
-          <div className="hero-scale">average of {grades.length} entries</div>
+          <div className="hero-scale">{t("gpa.averageOf", { count: grades.length })}</div>
         </div>
       )}
 
       <div className="panel">
-        <div className="panel-label">ADD A SCORE</div>
+        <div className="panel-label">{t("gpa.addScore")}</div>
         <form onSubmit={handleAdd} style={{ display: "flex", gap: 8 }}>
           <input
             className="field-input"
@@ -169,15 +170,15 @@ function CourseGrades({ groupId, userId }: { groupId: string; userId: string }) 
             onChange={(e) => setValue(e.target.value)}
           />
           <button className="primary-btn" style={{ width: "auto", padding: "0 14px" }} disabled={saving}>
-            Add
+            {t("common.add")}
           </button>
         </form>
-        <div className="field-hint">Track whatever scores matter for this course — any scale.</div>
+        <div className="field-hint">{t("gpa.scoreHint")}</div>
       </div>
 
       {grades.length > 0 && (
         <div className="panel">
-          <div className="panel-label">HISTORY</div>
+          <div className="panel-label">{t("gpa.history")}</div>
           {grades.map((g) => (
             <div className="resource-row" key={g.id}>
               <div style={{ flex: 1 }}>
@@ -196,14 +197,15 @@ function CourseGrades({ groupId, userId }: { groupId: string; userId: string }) 
 export default function Gpa() {
   const { user } = useAuth();
   const { activeGroup, approvedGroups } = useActiveGroup();
+  const { t } = useLanguage();
 
   return (
     <div className="page">
-      <div className="pagetitle">Grades</div>
+      <div className="pagetitle">{t("gpa.title")}</div>
       <ClassSwitcher />
 
       {approvedGroups.length === 0 ? (
-        <div className="empty-state">Join or create a class to track grades here.</div>
+        <div className="empty-state">{t("gpa.joinToTrack")}</div>
       ) : !activeGroup || !user ? null : activeGroup.type === "school_class" ? (
         <SchoolGrades groupId={activeGroup.group_id} userId={user.id} />
       ) : (

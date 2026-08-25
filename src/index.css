@@ -44,7 +44,7 @@ body {
   position: fixed;
   inset: 0;
   background: var(--paper);
-  font-family: "Noto Sans", "Inter", sans-serif;
+  font-family: "Noto Sans Armenian", "Noto Sans", "Inter", sans-serif;
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
 }
@@ -52,7 +52,7 @@ body {
 h1,
 h2,
 h3 {
-  font-family: "Noto Serif", serif;
+  font-family: "Noto Serif Armenian", "Noto Serif", serif;
   margin: 0;
 }
 
@@ -79,7 +79,7 @@ h3 {
 }
 
 .pagetitle {
-  font-family: "Noto Serif", serif;
+  font-family: "Noto Serif Armenian", "Noto Serif", serif;
   font-size: 21px;
   font-weight: 600;
   margin-bottom: 14px;
@@ -98,7 +98,7 @@ h3 {
   margin-bottom: 3px;
 }
 .greeting {
-  font-family: "Noto Serif", serif;
+  font-family: "Noto Serif Armenian", "Noto Serif", serif;
   font-size: 19px;
   font-weight: 600;
   line-height: 1.3;
@@ -126,7 +126,7 @@ h3 {
   margin-bottom: 14px;
 }
 .panel h2 {
-  font-family: "Noto Serif", serif;
+  font-family: "Noto Serif Armenian", "Noto Serif", serif;
   font-size: 14.5px;
   font-weight: 600;
   margin-bottom: 12px;
@@ -626,7 +626,7 @@ a.avatar-link {
   justify-content: center;
 }
 .profile-name {
-  font-family: "Noto Serif", serif;
+  font-family: "Noto Serif Armenian", "Noto Serif", serif;
   font-size: 18px;
   font-weight: 600;
 }
@@ -813,7 +813,7 @@ a.avatar-link {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "Noto Serif", serif;
+  font-family: "Noto Serif Armenian", "Noto Serif", serif;
   font-weight: 700;
   font-size: 22px;
   margin: 0 auto 12px;
@@ -832,7 +832,7 @@ a.avatar-link {
   margin-bottom: 18px;
 }
 .timer-mode-label {
-  font-family: "Noto Serif", serif;
+  font-family: "Noto Serif Armenian", "Noto Serif", serif;
   font-size: 18px;
   font-weight: 600;
 }

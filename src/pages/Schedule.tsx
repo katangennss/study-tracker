@@ -4,6 +4,7 @@ import { useActiveGroup } from "../lib/activeGroup";
 import { supabase } from "../lib/supabase";
 import { formatTime, todayISODate } from "../lib/dates";
 import ClassSwitcher from "../components/ClassSwitcher";
+import { useLanguage, type TranslationKey } from "../lib/i18n";
 
 type Period = {
   id: string;
@@ -30,9 +31,16 @@ function weekDates(): { date: Date; isoDow: number }[] {
   });
 }
 
-const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI"];
+const DAY_KEYS: TranslationKey[] = [
+  "schedule.dayMon",
+  "schedule.dayTue",
+  "schedule.dayWed",
+  "schedule.dayThu",
+  "schedule.dayFri",
+];
 
 function SchoolSchedule({ groupId }: { groupId: string }) {
+  const { t } = useLanguage();
   const days = weekDates();
   const todayIso = new Date().getDay() === 0 ? 7 : new Date().getDay();
   const [activeDow, setActiveDow] = useState(days.some((d) => d.isoDow === todayIso) ? todayIso : 1);
@@ -112,16 +120,16 @@ function SchoolSchedule({ groupId }: { groupId: string }) {
             className={"day" + (activeDow === d.isoDow ? " active" : "")}
             onClick={() => setActiveDow(d.isoDow)}
           >
-            <div className="day-label">{DAY_LABELS[i]}</div>
+            <div className="day-label">{t(DAY_KEYS[i])}</div>
             <div className="day-num mono-data">{d.date.getDate()}</div>
           </div>
         ))}
       </div>
 
       <div className="panel">
-        <div className="panel-label">{DAY_LABELS[activeDow - 1]}</div>
+        <div className="panel-label">{t(DAY_KEYS[activeDow - 1])}</div>
         {periods.length === 0 ? (
-          <div className="empty-state">Nothing scheduled for this day.</div>
+          <div className="empty-state">{t("schedule.nothingThisDay")}</div>
         ) : (
           <div className="timeline">
             {periods.map((p) => (
@@ -132,11 +140,11 @@ function SchoolSchedule({ groupId }: { groupId: string }) {
                     <div className="period-time mono-data">
                       {formatTime(p.starts_at)}–{formatTime(p.ends_at)}
                     </div>
-                    <div className="period-name">{p.subjects?.name ?? "Untitled"}</div>
+                    <div className="period-name">{p.subjects?.name ?? t("common.untitled")}</div>
                     {p.room && <div className="period-room">{p.room}</div>}
                   </div>
                   <button type="button" className="link-btn" onClick={() => handleDelete(p.id)}>
-                    Remove
+                    {t("common.remove")}
                   </button>
                 </div>
               </div>
@@ -147,29 +155,29 @@ function SchoolSchedule({ groupId }: { groupId: string }) {
 
       {adding ? (
         <div className="panel">
-          <div className="panel-label">ADD PERIOD · {DAY_LABELS[activeDow - 1]}</div>
+          <div className="panel-label">{t("schedule.addPeriodFor", { day: t(DAY_KEYS[activeDow - 1]) })}</div>
           <form onSubmit={handleAdd}>
             <div className="field">
-              <label className="field-label">Subject</label>
+              <label className="field-label">{t("schedule.subject")}</label>
               <input className="field-input" value={subjectName} onChange={(e) => setSubjectName(e.target.value)} />
             </div>
             <div className="field">
-              <label className="field-label">Room (optional)</label>
+              <label className="field-label">{t("schedule.roomOptional")}</label>
               <input className="field-input" value={room} onChange={(e) => setRoom(e.target.value)} />
             </div>
             <div style={{ display: "flex", gap: 10 }}>
               <div className="field" style={{ flex: 1 }}>
-                <label className="field-label">Starts</label>
+                <label className="field-label">{t("schedule.starts")}</label>
                 <input className="field-input" type="time" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
               </div>
               <div className="field" style={{ flex: 1 }}>
-                <label className="field-label">Ends</label>
+                <label className="field-label">{t("schedule.ends")}</label>
                 <input className="field-input" type="time" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
               </div>
             </div>
             <div style={{ display: "flex", gap: 10 }}>
               <button className="primary-btn" disabled={saving}>
-                {saving ? "Adding…" : "Add Period"}
+                {saving ? t("schedule.adding") : t("schedule.addPeriod")}
               </button>
               <button
                 type="button"
@@ -177,18 +185,18 @@ function SchoolSchedule({ groupId }: { groupId: string }) {
                 style={{ background: "var(--card)", color: "var(--ink)", border: "1px solid var(--line)" }}
                 onClick={() => setAdding(false)}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           </form>
         </div>
       ) : (
         <button type="button" className="list-row" style={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: "var(--radius)", width: "100%" }} onClick={() => setAdding(true)}>
-          <span className="list-row-label">+ Add Period</span>
+          <span className="list-row-label">{t("schedule.addPeriodBtn")}</span>
         </button>
       )}
 
-      <div className="hint">Anyone in the class can edit the schedule — it's shared and visible to everyone.</div>
+      <div className="hint">{t("schedule.editHint")}</div>
     </>
   );
 }
@@ -202,6 +210,7 @@ function CourseSessions({
   totalSessions: number | null;
   sessionsResetAt: string;
 }) {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const { refresh } = useActiveGroup();
   const [logs, setLogs] = useState<AttendanceRow[]>([]);
@@ -289,12 +298,12 @@ function CourseSessions({
     <>
       {reminder && (
         <div className="panel" style={{ background: "var(--amber-soft)", borderColor: "var(--amber)" }}>
-          <div className="resource-title">Time to pay for this class</div>
+          <div className="resource-title">{t("schedule.payReminderTitle")}</div>
           <div className="resource-sub" style={{ marginBottom: 10 }}>
-            You've used your full {totalSessions}-class package.
+            {t("schedule.payReminderBody", { total: totalSessions ?? "" })}
           </div>
           <button type="button" className="link-btn" onClick={dismissReminder}>
-            Got it
+            {t("schedule.gotIt")}
           </button>
         </div>
       )}
@@ -304,18 +313,18 @@ function CourseSessions({
           {usedThisCycle}
           {totalSessions ? ` / ${totalSessions}` : ""}
         </div>
-        <div className="hero-scale">classes attended this package</div>
+        <div className="hero-scale">{t("schedule.classesAttended")}</div>
       </div>
 
       <div className="panel">
-        <div className="panel-label">LOG TODAY'S CLASS</div>
+        <div className="panel-label">{t("schedule.logToday")}</div>
         <div className="primary-btn" onClick={logAttended}>
-          Attended
+          {t("schedule.attended")}
         </div>
       </div>
 
       <div className="panel">
-        <div className="panel-label">PACKAGE SIZE</div>
+        <div className="panel-label">{t("schedule.packageSize")}</div>
         <form onSubmit={savePackage} style={{ display: "flex", gap: 8 }}>
           <input
             className="field-input"
@@ -326,24 +335,21 @@ function CourseSessions({
             onChange={(e) => setPackageInput(e.target.value)}
           />
           <button className="primary-btn" style={{ width: "auto", padding: "0 16px" }} disabled={savingPackage}>
-            Save
+            {t("common.save")}
           </button>
         </form>
-        <div className="field-hint">
-          How many classes you paid for. Once you hit this many attended, the count resets to 0 and
-          you'll get a reminder it's time to pay again.
-        </div>
+        <div className="field-hint">{t("schedule.packageHint")}</div>
       </div>
 
       {logs.length > 0 && (
         <div className="panel">
-          <div className="panel-label">HISTORY</div>
+          <div className="panel-label">{t("schedule.history")}</div>
           {logs.map((l) => (
             <div className="resource-row" key={l.id}>
               <span className="dot" style={{ background: "#1D7A6E" }} />
               <div style={{ flex: 1 }}>
                 <div className="resource-title">{l.session_date}</div>
-                <div className="resource-sub">Attended</div>
+                <div className="resource-sub">{t("schedule.attended")}</div>
               </div>
               <button type="button" className="link-btn" style={{ color: "#c0392b" }} onClick={() => deleteLog(l.id)}>
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -362,14 +368,15 @@ function CourseSessions({
 
 export default function Schedule() {
   const { activeGroup, approvedGroups } = useActiveGroup();
+  const { t } = useLanguage();
 
   return (
     <div className="page">
-      <div className="pagetitle">{activeGroup?.type === "course" ? "Sessions" : "Schedule"}</div>
+      <div className="pagetitle">{activeGroup?.type === "course" ? t("schedule.sessionsTitle") : t("schedule.title")}</div>
       <ClassSwitcher />
 
       {approvedGroups.length === 0 ? (
-        <div className="empty-state">Join or create a class to see its schedule here.</div>
+        <div className="empty-state">{t("schedule.joinToSee")}</div>
       ) : activeGroup?.type === "school_class" ? (
         <SchoolSchedule groupId={activeGroup.group_id} />
       ) : activeGroup ? (
